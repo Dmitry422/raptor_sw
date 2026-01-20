@@ -592,11 +592,10 @@ SubGhzProtocolStatus
 
         flipper_format_rewind(flipper_format);
         uint32_t bs_magic_temp = 0;
-        if(!flipper_format_read_uint32(flipper_format, "BSMagic", &bs_magic_temp, 1)) {
-            FURI_LOG_E(TAG, "Missing BSMagic field");
-            break;
-        }
-        instance->bs_magic = (uint8_t)bs_magic_temp;
+        if(!flipper_format_read_uint32(flipper_format, "BSMagic", &bs_magic_temp, 1))
+            instance->bs_magic = 0x6F; //For Backward compatibility
+        else
+            instance->bs_magic = (uint8_t)bs_magic_temp;
 
         // Calculate BS from counter and button, as well as the BS Magic Number we pulled on decode.
         instance->bs = ford_v0_calculate_bs(instance->count, instance->button, instance->bs_magic);
@@ -928,8 +927,10 @@ SubGhzProtocolStatus
         instance->generic.cnt = instance->count;
 
         uint32_t bs_magic_temp = 0;
-        flipper_format_read_uint32(flipper_format, "BSMagic", &bs_magic_temp, 1);
-        instance->bs_magic = bs_magic_temp;
+        if(flipper_format_read_uint32(flipper_format, "BSMagic", &bs_magic_temp, 1))
+            instance->bs_magic = bs_magic_temp;
+        else
+            instance->bs_magic = 0x6F; //For backward psf file compatibiility.
     }
 
     return ret;
