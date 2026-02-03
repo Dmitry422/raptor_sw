@@ -975,7 +975,8 @@ void subghz_protocol_decoder_vag_get_string(void* context, FuriString* output) {
         break;
     }
 
-    instance->generic.protocol_name = vehicle_name;
+    //instance->generic.protocol_name = vehicle_name;
+    // Do not rename protocol ?
 
     if(instance->decrypted) {
         furi_string_cat_printf(

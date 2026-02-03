@@ -17,7 +17,7 @@ static void protopirate_scene_receiver_info_widget_callback(
                 app->view_dispatcher, ProtoPirateCustomEventReceiverInfoSave);
         }
 #ifdef ENABLE_EMULATE_FEATURE
-        else if(result == GuiButtonTypeLeft) {
+        else if(result == GuiButtonTypeLeft && !is_emu_off) {
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, ProtoPirateCustomEventReceiverInfoEmulate);
         }
