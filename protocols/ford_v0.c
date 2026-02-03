@@ -17,9 +17,9 @@ static const SubGhzBlockConst subghz_protocol_ford_v0_const = {
     .min_count_bit_for_found = 64,
 };
 
-#define FORD_V0_PREAMBLE_PAIRS 64
+#define FORD_V0_PREAMBLE_PAIRS 4
 #define FORD_V0_GAP_US         3500
-#define FORD_V0_TOTAL_BURSTS   3
+#define FORD_V0_TOTAL_BURSTS   6
 
 // =============================================================================
 // CRC MATRIX
@@ -474,7 +474,7 @@ static void subghz_protocol_encoder_ford_v0_get_upload(SubGhzProtocolEncoderFord
         }
 
         if(burst < FORD_V0_TOTAL_BURSTS - 1) {
-            ADD_LEVEL(false, te_long * 20);
+            ADD_LEVEL(false, te_long * 100);
         }
     }
 
@@ -954,7 +954,7 @@ void subghz_protocol_decoder_ford_v0_get_string(void* context, FuriString* outpu
     else if(instance->button == 0x02)
         button_name = "Unlock";
     else if(instance->button == 0x04)
-        button_name = "Trunk";
+        button_name = "Boot";
 
     furi_string_cat_printf(
         output,

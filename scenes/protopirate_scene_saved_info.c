@@ -9,15 +9,22 @@ static void protopirate_scene_saved_info_widget_callback(
     InputType type,
     void* context) {
     ProtoPirateApp* app = context;
-    if(type == InputTypeShort) {
-        if(result == GuiButtonTypeLeft) {
+
+    if((result == GuiButtonTypeLeft) && (type == InputTypeShort)) {
 #ifdef ENABLE_EMULATE_FEATURE
-            view_dispatcher_send_custom_event(
-                app->view_dispatcher, ProtoPirateCustomEventSavedInfoEmulate);
+        view_dispatcher_send_custom_event(
+            app->view_dispatcher, ProtoPirateCustomEventSavedInfoEmulate);
 #endif
-        } else if(result == GuiButtonTypeRight) {
+    } else if(result == GuiButtonTypeRight) {
+        switch(type) {
+        case InputTypeShort:
+            notification_message(app->notifications, &sequence_error);
+            break;
+        case InputTypeLong:
+            notification_message(app->notifications, &sequence_semi_success);
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, ProtoPirateCustomEventSavedInfoDelete);
+        default:
         }
     }
 }

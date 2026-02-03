@@ -84,7 +84,14 @@ struct ProtoPirateApp {
     bool radio_initialized;
     bool decoder_initialized;
     ProtoPirateSettings settings;
+    uint32_t start_tx_time;
+    uint8_t tx_power;
 };
+
+typedef enum {
+    ProtoPirateSetTypeFord_v0,
+    ProtoPirateSetTypeMAX,
+} ProtoPirateSetType;
 
 void protopirate_preset_init(
     void* context,
@@ -111,3 +118,16 @@ void protopirate_tx_stop(ProtoPirateApp* app);
 bool protopirate_radio_init(ProtoPirateApp* app);
 bool protopirate_decoder_init(ProtoPirateApp* app);
 void protopirate_radio_deinit(ProtoPirateApp* app);
+
+static const NotificationSequence sequence_tx = {
+    &message_note_c5,
+    &message_vibro_on,
+    &message_red_255,
+    &message_blue_255,
+    &message_blink_start_10,
+    &message_delay_25,
+    &message_vibro_off,
+    &message_delay_25,
+    &message_sound_off,
+    NULL,
+};

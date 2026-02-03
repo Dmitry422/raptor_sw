@@ -91,8 +91,16 @@ ProtoPirateApp* protopirate_app_alloc() {
 
     LOG_HEAP("After basic views");
 
+    // Load saved settings
+    ProtoPirateSettings settings;
+    protopirate_settings_load(&settings);
+
+    // Apply auto-save setting
+    app->auto_save = settings.auto_save;
+    app->tx_power = settings.tx_power;
+
     // Receiver Views
-    app->protopirate_receiver = protopirate_view_receiver_alloc();
+    app->protopirate_receiver = protopirate_view_receiver_alloc(app->auto_save);
     view_dispatcher_add_view(
         app->view_dispatcher,
         ProtoPirateViewReceiver,
@@ -109,16 +117,10 @@ ProtoPirateApp* protopirate_app_alloc() {
     // Init setting - KEEP THIS, it's small
     app->setting = subghz_setting_alloc();
     app->loaded_file_path = NULL;
+    app->start_tx_time = 0;
     subghz_setting_load(app->setting, EXT_PATH("subghz/assets/setting_user"));
 
     LOG_HEAP("After subghz_setting");
-
-    // Load saved settings
-    ProtoPirateSettings settings;
-    protopirate_settings_load(&settings);
-
-    // Apply auto-save setting
-    app->auto_save = settings.auto_save;
 
     // Apply loaded frequency and preset, with validation
     uint32_t frequency = settings.frequency;
@@ -422,6 +424,7 @@ void protopirate_app_free(ProtoPirateApp* app) {
     ProtoPirateSettings settings;
     settings.frequency = app->txrx->preset->frequency;
     settings.auto_save = app->auto_save;
+    settings.tx_power = app->tx_power;
     settings.hopping_enabled = (app->txrx->hopper_state != ProtoPirateHopperStateOFF);
 
     // Find current preset index
@@ -521,10 +524,26 @@ int32_t protopirate_app(char* p) {
     // Handle Command line PSF that may have been passed to us
     bool load_saved = (p && strlen(p));
     if(load_saved) protopirate_app->loaded_file_path = furi_string_alloc_set(p);
-
     scene_manager_next_scene(
         protopirate_app->scene_manager,
         (load_saved) ? ProtoPirateSceneSavedInfo : ProtoPirateSceneStart);
+
+#ifdef ENABLE_EMULATE_FEATURE
+    //We now jump straight to emulate scene from Browser. If the user wanted the key to look at, just click back.
+    //Makes it faster in my use case
+    if(load_saved) {
+        view_dispatcher_send_custom_event(
+            protopirate_app->view_dispatcher, ProtoPirateCustomEventSavedInfoEmulate);
+        notification_message(protopirate_app->notifications, &sequence_success);
+    }
+#else
+    //We now jump straight to emulate scene from Browser. If the user wanted the key to look at, just click back.
+    //Makes it faster in my use case
+    if(load_saved) {
+        view_dispatcher_send_custom_event(
+            protopirate_app->view_dispatcher, ProtoPirateCustomEventReceiverInfoSave);
+    }
+#endif
 
     view_dispatcher_run(protopirate_app->view_dispatcher);
 

@@ -9,7 +9,7 @@ static void protopirate_scene_receiver_info_widget_callback(
     InputType type,
     void* context) {
     ProtoPirateApp* app = context;
-    if(type == InputTypeShort) {
+    if(type == InputTypeShort || type == InputTypeLong) {
         if(result == GuiButtonTypeRight) {
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, ProtoPirateCustomEventReceiverInfoSave);
@@ -41,7 +41,8 @@ void protopirate_scene_receiver_info_on_enter(void* context) {
     protopirate_history_get_text_item(app->txrx->history, text, app->txrx->idx_menu_chosen);
 
     bool is_psa = false;
-    FlipperFormat* ff = protopirate_history_get_raw_data(app->txrx->history, app->txrx->idx_menu_chosen);
+    FlipperFormat* ff =
+        protopirate_history_get_raw_data(app->txrx->history, app->txrx->idx_menu_chosen);
     if(ff) {
         FuriString* protocol = furi_string_alloc();
         flipper_format_rewind(ff);
@@ -73,9 +74,8 @@ void protopirate_scene_receiver_info_on_enter(void* context) {
     if(is_psa) {
         FuriString* reformatted = furi_string_alloc();
         const char* current = text_str;
-        
-        while(*current) {
 
+        while(*current) {
             const char* line_end = strchr(current, '\r');
             if(!line_end) {
                 line_end = strchr(current, '\n');
@@ -83,18 +83,16 @@ void protopirate_scene_receiver_info_on_enter(void* context) {
             if(!line_end) {
                 line_end = current + strlen(current);
             }
-            
-            if(strncmp(current, "Ser:", 4) == 0) {
 
+            if(strncmp(current, "Ser:", 4) == 0) {
                 size_t ser_len = line_end - current;
                 furi_string_cat_printf(reformatted, "%.*s", (int)ser_len, current);
-                
+
                 const char* next_line = line_end;
                 if(*next_line == '\r') next_line++;
                 if(*next_line == '\n') next_line++;
-                
-                if(strncmp(next_line, "Cnt:", 4) == 0) {
 
+                if(strncmp(next_line, "Cnt:", 4) == 0) {
                     const char* cnt_end = strchr(next_line, '\r');
                     if(!cnt_end) {
                         cnt_end = strchr(next_line, '\n');
@@ -102,34 +100,38 @@ void protopirate_scene_receiver_info_on_enter(void* context) {
                     if(!cnt_end) {
                         cnt_end = next_line + strlen(next_line);
                     }
-                    
+
                     size_t cnt_len = cnt_end - next_line;
                     furi_string_cat_printf(reformatted, " %.*s\r\n", (int)cnt_len, next_line);
-                    
+
                     current = cnt_end;
                     if(*current == '\r') current++;
                     if(*current == '\n') current++;
                 } else {
-
                     furi_string_cat_printf(reformatted, "\r\n");
                     current = line_end;
                     if(*current == '\r') current++;
                     if(*current == '\n') current++;
                 }
             } else {
-
                 size_t line_len = line_end - current;
                 furi_string_cat_printf(reformatted, "%.*s\r\n", (int)line_len, current);
                 current = line_end;
                 if(*current == '\r') current++;
                 if(*current == '\n') current++;
             }
-            
+
             if(*current == '\0') break;
         }
-        
+
         widget_add_string_multiline_element(
-            app->widget, 0, 11, AlignLeft, AlignTop, FontSecondary, furi_string_get_cstr(reformatted));
+            app->widget,
+            0,
+            11,
+            AlignLeft,
+            AlignTop,
+            FontSecondary,
+            furi_string_get_cstr(reformatted));
         furi_string_free(reformatted);
     } else {
         widget_add_string_multiline_element(
@@ -203,13 +205,13 @@ bool protopirate_scene_receiver_info_on_event(void* context, SceneManagerEvent e
                 // Save to temp file (will be deleted on emulate exit)
                 if(protopirate_storage_save_temp(ff)) {
                     FURI_LOG_I(TAG, "Saved temp for emulate");
-                    
+
                     // Set the temp file path for emulate scene
                     if(app->loaded_file_path) {
                         furi_string_free(app->loaded_file_path);
                     }
                     app->loaded_file_path = furi_string_alloc_set_str(PROTOPIRATE_TEMP_FILE);
-                    
+
                     // Go to emulate scene
                     scene_manager_next_scene(app->scene_manager, ProtoPirateSceneEmulate);
                 } else {
