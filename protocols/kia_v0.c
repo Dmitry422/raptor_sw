@@ -13,7 +13,7 @@ static const SubGhzBlockConst subghz_protocol_kia_const = {
 // Multi-burst configuration
 #define KIA_TOTAL_BURSTS       2
 #define KIA_INTER_BURST_GAP_US 25000
-#define KIA_HEADER_PULSES 64
+#define KIA_HEADER_PULSES      64
 
 struct SubGhzProtocolDecoderKIA {
     SubGhzProtocolDecoderBase base;
