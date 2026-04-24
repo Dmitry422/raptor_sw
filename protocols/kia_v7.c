@@ -1,13 +1,13 @@
 #include "kia_v7.h"
 #include <string.h>
 
-#define KIA_V7_UPLOAD_CAPACITY   0x3A4
-#define KIA_V7_PREAMBLE_PAIRS    0x13F
+#define KIA_V7_UPLOAD_CAPACITY    0x3A4
+#define KIA_V7_PREAMBLE_PAIRS     0x13F
 #define KIA_V7_PREAMBLE_MIN_PAIRS 16
-#define KIA_V7_HEADER            0x4C
-#define KIA_V7_TAIL_GAP_US       0x7D0
-#define KIA_V7_KEY_BITS          64U
-#define KIA_V7_DEFAULT_TX_REPEAT 10U
+#define KIA_V7_HEADER             0x4C
+#define KIA_V7_TAIL_GAP_US        0x7D0
+#define KIA_V7_KEY_BITS           64U
+#define KIA_V7_DEFAULT_TX_REPEAT  10U
 
 static const SubGhzBlockConst kia_protocol_v7_const = {
     .te_short = 250,
@@ -87,7 +87,8 @@ static uint64_t kia_v7_bytes_to_u64_be(const uint8_t bytes[8]) {
 }
 
 static bool kia_v7_is_short(uint32_t duration) {
-    return DURATION_DIFF(duration, kia_protocol_v7_const.te_short) < kia_protocol_v7_const.te_delta;
+    return DURATION_DIFF(duration, kia_protocol_v7_const.te_short) <
+           kia_protocol_v7_const.te_delta;
 }
 
 static bool kia_v7_is_long(uint32_t duration) {
@@ -113,8 +114,7 @@ static SubGhzProtocolStatus
     SubGhzProtocolStatus status = SubGhzProtocolStatusOk;
     FuriString* display = furi_string_alloc();
 
-    furi_string_printf(
-        display, "%s - %s", protocol_name, kia_v7_get_button_name(button));
+    furi_string_printf(display, "%s - %s", protocol_name, kia_v7_get_button_name(button));
 
     if(!flipper_format_write_string_cstr(flipper_format, "Disp", furi_string_get_cstr(display))) {
         status = SubGhzProtocolStatusErrorParserOthers;
@@ -214,15 +214,14 @@ static void kia_v7_decode_key_encoder(SubGhzProtocolEncoderKiaV7* instance) {
 static bool kia_v7_encoder_get_upload(SubGhzProtocolEncoderKiaV7* instance) {
     furi_check(instance);
 
-    const LevelDuration high_short =
-        level_duration_make(true, kia_protocol_v7_const.te_short);
-    const LevelDuration low_short =
-        level_duration_make(false, kia_protocol_v7_const.te_short);
+    const LevelDuration high_short = level_duration_make(true, kia_protocol_v7_const.te_short);
+    const LevelDuration low_short = level_duration_make(false, kia_protocol_v7_const.te_short);
     const LevelDuration low_tail = level_duration_make(false, KIA_V7_TAIL_GAP_US);
     const size_t max_size = KIA_V7_UPLOAD_CAPACITY;
 
-    const uint8_t bit_count =
-        (instance->tx_bit_count > 0U && instance->tx_bit_count <= 64U) ? instance->tx_bit_count : 64U;
+    const uint8_t bit_count = (instance->tx_bit_count > 0U && instance->tx_bit_count <= 64U) ?
+                                  instance->tx_bit_count :
+                                  64U;
 
     size_t final_size = 0;
 
@@ -362,17 +361,15 @@ SubGhzProtocolStatus
 
         flipper_format_rewind(flipper_format);
         SubGhzProtocolStatus load_st = subghz_block_generic_deserialize_check_count_bit(
-            &instance->generic,
-            flipper_format,
-            KIA_V7_KEY_BITS);
+            &instance->generic, flipper_format, KIA_V7_KEY_BITS);
         if(load_st != SubGhzProtocolStatusOk) {
             break;
         }
 
         instance->tx_bit_count =
-            (instance->generic.data_count_bit > 0U && instance->generic.data_count_bit <= 64U)
-                ? (uint8_t)instance->generic.data_count_bit
-                : 64U;
+            (instance->generic.data_count_bit > 0U && instance->generic.data_count_bit <= 64U) ?
+                (uint8_t)instance->generic.data_count_bit :
+                64U;
 
         kia_v7_decode_key_encoder(instance);
 
@@ -668,7 +665,8 @@ SubGhzProtocolStatus kia_protocol_decoder_v7_serialize(
         return SubGhzProtocolStatusErrorParserOthers;
     }
 
-    return kia_v7_write_display(flipper_format, instance->generic.protocol_name, instance->decoded_button);
+    return kia_v7_write_display(
+        flipper_format, instance->generic.protocol_name, instance->decoded_button);
 }
 
 SubGhzProtocolStatus
@@ -677,9 +675,7 @@ SubGhzProtocolStatus
 
     SubGhzProtocolDecoderKiaV7* instance = context;
     SubGhzProtocolStatus status = subghz_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
-        KIA_V7_KEY_BITS);
+        &instance->generic, flipper_format, KIA_V7_KEY_BITS);
 
     if(status != SubGhzProtocolStatusOk) {
         return status;

@@ -13,7 +13,7 @@ static const SubGhzBlockConst subghz_protocol_mazda_v0_const = {
     .min_count_bit_for_found = 64,
 };
 
-#define MAZDA_V0_UPLOAD_CAPACITY   0x184
+#define MAZDA_V0_UPLOAD_CAPACITY 0x184
 #define MAZDA_V0_GAP_US          0xCB20
 #define MAZDA_V0_SYNC_BYTE       0xD7
 #define MAZDA_V0_TAIL_BYTE       0x5A
@@ -68,14 +68,14 @@ static bool mazda_v0_encoder_add_level(
     size_t* index,
     bool level,
     uint32_t duration);
-static bool mazda_v0_append_byte(
-    SubGhzProtocolEncoderMazdaV0* instance,
-    size_t* index,
-    uint8_t value);
+static bool
+    mazda_v0_append_byte(SubGhzProtocolEncoderMazdaV0* instance, size_t* index, uint8_t value);
 static bool mazda_v0_build_upload(SubGhzProtocolEncoderMazdaV0* instance);
 #endif
-static SubGhzProtocolStatus
-    mazda_v0_write_display(FlipperFormat* flipper_format, const char* protocol_name, uint8_t button);
+static SubGhzProtocolStatus mazda_v0_write_display(
+    FlipperFormat* flipper_format,
+    const char* protocol_name,
+    uint8_t button);
 
 // =============================================================================
 // PROTOCOL INTERFACE DEFINITIONS
@@ -150,10 +150,9 @@ static uint64_t mazda_v0_bytes_to_u64_be(const uint8_t bytes[8]) {
 
 static uint8_t mazda_v0_calculate_checksum(uint32_t serial, uint8_t button, uint32_t counter) {
     counter &= 0xFFFFFU;
-    return (uint8_t)(
-        ((serial >> 24) & 0xFF) + ((serial >> 16) & 0xFF) + ((serial >> 8) & 0xFF) +
-        (serial & 0xFF) + ((counter >> 8) & 0xFF) + (counter & 0xFF) +
-        ((((counter >> 16) & 0x0F) | ((button & 0x0F) << 4)) & 0xFF));
+    return (uint8_t)(((serial >> 24) & 0xFF) + ((serial >> 16) & 0xFF) + ((serial >> 8) & 0xFF) +
+                     (serial & 0xFF) + ((counter >> 8) & 0xFF) + (counter & 0xFF) +
+                     ((((counter >> 16) & 0x0F) | ((button & 0x0F) << 4)) & 0xFF));
 }
 
 static const char* mazda_v0_get_button_name(uint8_t button) {
@@ -258,10 +257,8 @@ static bool mazda_v0_encoder_add_level(
     return true;
 }
 
-static bool mazda_v0_append_byte(
-    SubGhzProtocolEncoderMazdaV0* instance,
-    size_t* index,
-    uint8_t value) {
+static bool
+    mazda_v0_append_byte(SubGhzProtocolEncoderMazdaV0* instance, size_t* index, uint8_t value) {
     if(*index + 16 > MAZDA_V0_UPLOAD_CAPACITY) {
         return false;
     }
@@ -335,13 +332,14 @@ static bool mazda_v0_build_upload(SubGhzProtocolEncoderMazdaV0* instance) {
 }
 #endif
 
-static SubGhzProtocolStatus
-    mazda_v0_write_display(FlipperFormat* flipper_format, const char* protocol_name, uint8_t button) {
+static SubGhzProtocolStatus mazda_v0_write_display(
+    FlipperFormat* flipper_format,
+    const char* protocol_name,
+    uint8_t button) {
     SubGhzProtocolStatus status = SubGhzProtocolStatusOk;
     FuriString* display = furi_string_alloc();
 
-    furi_string_printf(
-        display, "%s - %s", protocol_name, mazda_v0_get_button_name(button));
+    furi_string_printf(display, "%s - %s", protocol_name, mazda_v0_get_button_name(button));
 
     if(!flipper_format_write_string_cstr(flipper_format, "Disp", furi_string_get_cstr(display))) {
         status = SubGhzProtocolStatusErrorParserOthers;
@@ -470,8 +468,8 @@ SubGhzProtocolStatus
             break;
         }
 
-        uint32_t chk = mazda_v0_calculate_checksum(
-            instance->serial, instance->button, instance->count);
+        uint32_t chk =
+            mazda_v0_calculate_checksum(instance->serial, instance->button, instance->count);
         flipper_format_rewind(flipper_format);
         flipper_format_insert_or_update_uint32(flipper_format, "Checksum", &chk, 1);
 
@@ -553,9 +551,8 @@ void subghz_protocol_decoder_mazda_v0_feed(void* context, bool level, uint32_t d
 
     switch(instance->decoder.parser_step) {
     case MazdaV0DecoderStepReset:
-        if(level &&
-           ((uint32_t)DURATION_DIFF(duration, subghz_protocol_mazda_v0_const.te_short) <
-            (uint32_t)subghz_protocol_mazda_v0_const.te_delta + 20U)) {
+        if(level && ((uint32_t)DURATION_DIFF(duration, subghz_protocol_mazda_v0_const.te_short) <
+                     (uint32_t)subghz_protocol_mazda_v0_const.te_delta + 20U)) {
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
             instance->decoder.parser_step = MazdaV0DecoderStepPreamble;
@@ -655,8 +652,8 @@ SubGhzProtocolStatus subghz_protocol_decoder_mazda_v0_serialize(
         subghz_block_generic_serialize(&instance->generic, flipper_format, preset);
 
     if(ret == SubGhzProtocolStatusOk) {
-        uint32_t chk = mazda_v0_calculate_checksum(
-            instance->serial, instance->button, instance->count);
+        uint32_t chk =
+            mazda_v0_calculate_checksum(instance->serial, instance->button, instance->count);
         flipper_format_write_uint32(flipper_format, "Checksum", &chk, 1);
 
         flipper_format_write_uint32(flipper_format, "Serial", &instance->serial, 1);
