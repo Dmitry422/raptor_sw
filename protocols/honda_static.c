@@ -456,7 +456,6 @@ static void honda_static_build_upload(SubGhzProtocolEncoderHondaStatic* instance
     instance->encoder.front = 0U;
     instance->encoder.size_upload = index;
 }
-#endif
 
 static bool honda_static_read_hex_u64(FlipperFormat* ff, uint64_t* out_key) {
     FuriString* tmp = furi_string_alloc();
@@ -490,6 +489,7 @@ static bool honda_static_read_hex_u64(FlipperFormat* ff, uint64_t* out_key) {
     furi_string_free(tmp);
     return ok;
 }
+#endif
 
 const SubGhzProtocolDecoder subghz_protocol_honda_static_decoder = {
     .alloc = subghz_protocol_decoder_honda_static_alloc,
