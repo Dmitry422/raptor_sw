@@ -91,6 +91,7 @@ ProtoPirateApp* protopirate_app_alloc() {
     app->sound = settings.sound;
     app->check_saved = settings.check_saved;
     app->tx_power = settings.tx_power;
+    app->datetime_filenames = settings.datetime_filenames;
 #ifdef ENABLE_EMULATE_FEATURE
     app->emulate_feature_enabled = settings.emulate_feature_enabled;
 #else
@@ -180,6 +181,7 @@ void protopirate_app_free(ProtoPirateApp* app) {
     settings.sound = app->sound;
     settings.check_saved = app->check_saved;
     settings.tx_power = app->tx_power;
+    settings.datetime_filenames = app->datetime_filenames;
     settings.hopping_enabled = (app->txrx->hopper_state != ProtoPirateHopperStateOFF);
 #ifdef ENABLE_EMULATE_FEATURE
     settings.emulate_feature_enabled = app->emulate_feature_enabled;
