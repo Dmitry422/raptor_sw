@@ -121,9 +121,11 @@ static void show_bf_progress(void* app) {
     if(g_bf_kind == ProtoPirateBfKindHitag2) {
         widget_add_string_element(widget, 62, 0, AlignLeft, AlignTop, FontPrimary, "Recover Key");
         widget_add_string_element(widget, 62, 12, AlignLeft, AlignTop, FontSecondary, "Max ETA:");
-        widget_add_string_element(widget, 62, 22, AlignLeft, AlignTop, FontSecondary, "60 seconds");
+        widget_add_string_element(
+            widget, 62, 22, AlignLeft, AlignTop, FontSecondary, "60 seconds");
     } else {
-        widget_add_string_element(widget, 62, 0, AlignLeft, AlignTop, FontPrimary, "Bruteforcing...");
+        widget_add_string_element(
+            widget, 62, 0, AlignLeft, AlignTop, FontPrimary, "Bruteforcing...");
     }
 
     FuriString* pct_str =

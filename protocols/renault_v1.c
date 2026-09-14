@@ -7,14 +7,14 @@
 
 #define TAG "RenaultV1Protocol"
 
-#define HITAG2_TE_US             125U
-#define HITAG2_HEADER_LOW_US     1500U
-#define HITAG2_HEADER_HIGH_US    1000U
-#define HITAG2_SHORT_GAP_US      21500U
-#define HITAG2_PREAMBLE_PAIRS    250U
-#define HITAG2_LONG_FRAMES       3U
-#define HITAG2_SHORT_FRAMES      3U
-#define HITAG2_UPLOAD_CAPACITY   1295U
+#define HITAG2_TE_US           125U
+#define HITAG2_HEADER_LOW_US   1500U
+#define HITAG2_HEADER_HIGH_US  1000U
+#define HITAG2_SHORT_GAP_US    21500U
+#define HITAG2_PREAMBLE_PAIRS  250U
+#define HITAG2_LONG_FRAMES     3U
+#define HITAG2_SHORT_FRAMES    3U
+#define HITAG2_UPLOAD_CAPACITY 1295U
 _Static_assert(
     HITAG2_UPLOAD_CAPACITY <= PP_SHARED_UPLOAD_CAPACITY,
     "HITAG2_UPLOAD_CAPACITY exceeds shared upload slab");
@@ -86,7 +86,6 @@ typedef enum {
     RenaultV1DecoderStepCheckSync = 2,
     RenaultV1DecoderStepData = 3,
 } RenaultV1DecoderStep;
-
 
 const SubGhzProtocolDecoder renault_v1_decoder = {
     .alloc = subghz_protocol_decoder_renault_v1_alloc,
@@ -213,11 +212,8 @@ static uint64_t hitag2_key_to_u64(const uint8_t key[6]) {
     return key64;
 }
 
-static uint32_t hitag2_authenticator(
-    uint32_t uid,
-    uint8_t button,
-    uint32_t counter,
-    const uint8_t key[6]) {
+static uint32_t
+    hitag2_authenticator(uint32_t uid, uint8_t button, uint32_t counter, const uint8_t key[6]) {
     const uint64_t key64 = hitag2_key_to_u64(key);
     const uint32_t nonce = (counter << 4U) | ((uint32_t)button & 0x0FU);
     uint64_t state = 0ULL;
@@ -395,15 +391,16 @@ static void hitag2_serial_permute(const uint8_t serial[4], uint8_t perm[6]) {
     perm[1] = acc;
 
     const uint8_t sn0_shr3 = (uint8_t)(sn0 >> 3);
-    acc = (uint8_t)(hitag2_extract_bits(sn0, 2, 1) | (sn0_shr3 & 2U) | ((~(uint32_t)(sn3 >> 2)) & 4U) |
-                    (sn1 & 0x10U));
+    acc = (uint8_t)(hitag2_extract_bits(sn0, 2, 1) | (sn0_shr3 & 2U) |
+                    ((~(uint32_t)(sn3 >> 2)) & 4U) | (sn1 & 0x10U));
     acc |= (uint8_t)((~(uint32_t)(sn1 << 4)) & 0x20U);
     acc |= (uint8_t)(sn3_inv_shl3 & 0x40U);
     acc |= 0x80U;
     perm[2] = acc;
 
     const uint8_t sn2_inv_shl6 = (uint8_t) ~(sn2 << 6);
-    acc = (uint8_t)(((sn0 >> 2) & 2U) | ((sn1 >> 3) & 8U) | hitag2_extract_bits(sn2 ^ 0x20U, 5, 1));
+    acc =
+        (uint8_t)(((sn0 >> 2) & 2U) | ((sn1 >> 3) & 8U) | hitag2_extract_bits(sn2 ^ 0x20U, 5, 1));
     acc |= (uint8_t)((sn1 << 5) & 0x20U);
     acc |= (uint8_t)((sn3 << 1) & 0x40U);
     acc |= (uint8_t)(((uint8_t)~sn0_shr3) & 4U);
@@ -659,8 +656,7 @@ static bool hitag2_encoder_next_frame(
     uint32_t orig_hop,
     uint8_t tail) {
     uint8_t raw[11];
-    if(!hitag2_key_matches_hop(
-           instance->hitag2_key, orig_uid, orig_btn, orig_cnt10, orig_hop)) {
+    if(!hitag2_key_matches_hop(instance->hitag2_key, orig_uid, orig_btn, orig_cnt10, orig_hop)) {
         return false;
     }
 
@@ -808,9 +804,7 @@ SubGhzProtocolStatus
 
     do {
         ret = subghz_block_generic_deserialize_check_count_bit(
-            &instance->generic,
-            flipper_format,
-            renault_v1_const.min_count_bit_for_found);
+            &instance->generic, flipper_format, renault_v1_const.min_count_bit_for_found);
         if(ret != SubGhzProtocolStatusOk) {
             break;
         }
@@ -918,12 +912,14 @@ SubGhzProtocolStatus
         }
         uint8_t key_data[8];
         hitag2_u64_to_bytes_be(instance->generic.data, key_data, 8);
-        if(!flipper_format_insert_or_update_hex(flipper_format, FF_KEY, key_data, sizeof(key_data))) {
+        if(!flipper_format_insert_or_update_hex(
+               flipper_format, FF_KEY, key_data, sizeof(key_data))) {
             ret = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
         hitag2_u64_to_bytes_be(instance->generic.data_2, key_data, 8);
-        if(!flipper_format_insert_or_update_hex(flipper_format, "Key_2", key_data, sizeof(key_data))) {
+        if(!flipper_format_insert_or_update_hex(
+               flipper_format, "Key_2", key_data, sizeof(key_data))) {
             ret = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
@@ -1225,9 +1221,7 @@ SubGhzProtocolStatus
 
     do {
         ret = subghz_block_generic_deserialize_check_count_bit(
-            &instance->generic,
-            flipper_format,
-            renault_v1_const.min_count_bit_for_found);
+            &instance->generic, flipper_format, renault_v1_const.min_count_bit_for_found);
         if(ret != SubGhzProtocolStatusOk) {
             break;
         }
@@ -1515,8 +1509,8 @@ bool hitag2_bf_patch_flipper_format_on_success(FlipperFormat* ff, const Hitag2Bf
 
     const uint32_t seed = hitag2_seed_from_iv(state->iv);
     const uint64_t data = hitag2_bytes_to_u64_be(state->frame, 8);
-    const uint64_t data_2 = ((uint64_t)state->frame[8] << 16U) | ((uint64_t)state->frame[9] << 8U) |
-                            state->frame[10];
+    const uint64_t data_2 = ((uint64_t)state->frame[8] << 16U) |
+                            ((uint64_t)state->frame[9] << 8U) | state->frame[10];
     uint32_t serial = 0;
     uint32_t cnt = 0;
     uint32_t hop = 0;
@@ -1557,8 +1551,8 @@ bool hitag2_flipper_format_get_string(FlipperFormat* ff, FuriString* output) {
         return false;
     }
 
-    const bool ok =
-        subghz_protocol_decoder_renault_v1_deserialize(decoder, ff) == SubGhzProtocolStatusOk;
+    const bool ok = subghz_protocol_decoder_renault_v1_deserialize(decoder, ff) ==
+                    SubGhzProtocolStatusOk;
     if(ok) {
         furi_string_reset(output);
         subghz_protocol_decoder_renault_v1_get_string(decoder, output);

@@ -1213,7 +1213,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                     flipper_format_rewind(ff);
                     bool have_proto = flipper_format_read_string(ff, FF_PROTOCOL, proto_str);
                     bool offers_bf = have_proto && protopirate_protocol_catalog_offers_bruteforce(
-                                                      furi_string_get_cstr(proto_str));
+                                                       furi_string_get_cstr(proto_str));
 
                     if(have_proto) {
                         const char* protocol_name = furi_string_get_cstr(proto_str);
