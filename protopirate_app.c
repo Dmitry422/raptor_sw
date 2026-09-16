@@ -88,6 +88,7 @@ ProtoPirateApp* protopirate_app_alloc() {
 
     // Apply auto-save setting
     app->auto_save = settings.auto_save;
+    app->sound = settings.sound;
     app->check_saved = settings.check_saved;
     app->tx_power = settings.tx_power;
 #ifdef ENABLE_EMULATE_FEATURE
@@ -176,6 +177,7 @@ void protopirate_app_free(ProtoPirateApp* app) {
     ProtoPirateSettings settings;
     settings.frequency = app->txrx->preset->frequency;
     settings.auto_save = app->auto_save;
+    settings.sound = app->sound;
     settings.check_saved = app->check_saved;
     settings.tx_power = app->tx_power;
     settings.hopping_enabled = (app->txrx->hopper_state != ProtoPirateHopperStateOFF);
