@@ -56,8 +56,10 @@ static void protopirate_scene_receiver_callback(
         protopirate_history_add_to_history(app->txrx->history, decoder_base, app->txrx->preset);
 
     if(added) {
-        notification_message(app->notifications, &sequence_semi_success);
-
+        if(!(app->sound))
+            notification_message(app->notifications, &sequence_semi_success);
+        else
+            notification_message(app->notifications, &sequence_single_vibro);
         FURI_LOG_I(
             TAG,
             "Added to history, total items: %u",
