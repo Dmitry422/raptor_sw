@@ -16,7 +16,7 @@ struct Icon {
     const uint8_t* const* frames;
 };
 
-const uint8_t _I_WarningDolphin_45x42_0[] = {
+const uint8_t _I_WarningDolphin_45x42e_0[] = {
     0x01, 0x00, 0xc6, 0x00, 0x00, 0x1c, 0x22, 0x04, 0x05, 0x7f, 0xfc, 0x1e, 0x20, 0x05, 0x1e, 0x04,
     0x02, 0x30, 0x05, 0x29, 0x84, 0x02, 0xc1, 0x20, 0x02, 0x8c, 0x22, 0x01, 0x80, 0x02, 0x94, 0x10,
     0x32, 0x30, 0x10, 0x10, 0x87, 0xca, 0x84, 0x03, 0x10, 0x42, 0x81, 0x48, 0x28, 0x38, 0x08, 0x04,
@@ -31,16 +31,16 @@ const uint8_t _I_WarningDolphin_45x42_0[] = {
     0x02, 0x9d, 0x1e, 0x38, 0x29, 0x10, 0x29, 0x17, 0xc8, 0x0a, 0x32, 0x3a, 0x00, 0x14, 0x4b, 0xa2,
     0x05, 0x58, 0x98, 0x15, 0x22, 0x20, 0x54, 0x84, 0x81, 0x50,
 };
-const uint8_t* const _I_WarningDolphin_45x42[] = {_I_WarningDolphin_45x42_0};
+const uint8_t* const _I_WarningDolphin_45x42e[] = {_I_WarningDolphin_45x42e_0};
 
-const Icon I_WarningDolphin_45x42 = {
+const Icon I_WarningDolphin_45x42e = {
     .width = 45,
     .height = 42,
     .frame_count = 1,
     .frame_rate = 0,
-    .frames = _I_WarningDolphin_45x42};
+    .frames = _I_WarningDolphin_45x42e};
 
-const uint8_t _I_Lock_7x8_0[] = {
+const uint8_t _I_Lock_7x8e_0[] = {
     0x00,
     0x1c,
     0x22,
@@ -51,10 +51,10 @@ const uint8_t _I_Lock_7x8_0[] = {
     0x7f,
     0x3e,
 };
-const uint8_t* const _I_Lock_7x8[] = {_I_Lock_7x8_0};
+const uint8_t* const _I_Lock_7x8e[] = {_I_Lock_7x8e_0};
 
-const Icon I_Lock_7x8 =
-    {.width = 7, .height = 8, .frame_count = 1, .frame_rate = 0, .frames = _I_Lock_7x8};
+const Icon I_Lock_7x8e =
+    {.width = 7, .height = 8, .frame_count = 1, .frame_rate = 0, .frames = _I_Lock_7x8e};
 
 /**************************************************************************************************/
 
@@ -170,7 +170,7 @@ static void variable_item_list_draw_callback(Canvas* canvas, void* _model) {
                 (position != model->position));
 
             if(item->locked) {
-                canvas_draw_icon(canvas, value_pos_x, item_text_y - 8, &I_Lock_7x8);
+                canvas_draw_icon(canvas, value_pos_x, item_text_y - 8, &I_Lock_7x8e);
             } else {
                 if(item->current_value_index > 0) {
                     canvas_draw_str(canvas, value_pos_x, item_text_y, "<");
@@ -203,7 +203,7 @@ static void variable_item_list_draw_callback(Canvas* canvas, void* _model) {
         canvas_set_color(canvas, ColorWhite);
         canvas_draw_box(canvas, 8, 10, 110, 48);
         canvas_set_color(canvas, ColorBlack);
-        canvas_draw_icon(canvas, 10, 14, &I_WarningDolphin_45x42);
+        canvas_draw_icon(canvas, 10, 14, &I_WarningDolphin_45x42e);
         canvas_draw_rframe(canvas, 8, 8, 112, 50, 3);
         canvas_draw_rframe(canvas, 9, 9, 110, 48, 2);
         elements_multiline_text_aligned(
