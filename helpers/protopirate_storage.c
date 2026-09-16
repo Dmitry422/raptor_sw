@@ -222,7 +222,6 @@ static const char* const protopirate_storage_tail_u32_fields[] = {
     "Encrypted",
     "Decrypted",
     "KIAVersion",
-    "Checksum",
 };
 
 static bool protopirate_storage_fail(const char* action, const char* key) {
