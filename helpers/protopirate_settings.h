@@ -18,6 +18,7 @@ typedef struct {
     bool hopping_enabled;
     bool emulate_feature_enabled;
     bool check_saved;
+    bool datetime_filenames;
 } ProtoPirateSettings;
 
 void protopirate_settings_load(ProtoPirateSettings* settings);
