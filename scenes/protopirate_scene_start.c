@@ -87,6 +87,7 @@ bool protopirate_scene_start_on_event(void* context, SceneManagerEvent event) {
     bool consumed = false;
 
     if(event.type == SceneManagerEventTypeCustom) {
+        scene_manager_set_scene_state(app->scene_manager, ProtoPirateSceneStart, event.event);
         if(event.event == SubmenuIndexProtoPirateAbout) {
             scene_manager_next_scene(app->scene_manager, ProtoPirateSceneAbout);
             consumed = true;
@@ -112,7 +113,6 @@ bool protopirate_scene_start_on_event(void* context, SceneManagerEvent event) {
             consumed = true;
         }
 #endif
-        scene_manager_set_scene_state(app->scene_manager, ProtoPirateSceneStart, event.event);
     }
 
     return consumed;
