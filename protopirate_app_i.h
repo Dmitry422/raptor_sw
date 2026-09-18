@@ -109,6 +109,8 @@ struct ProtoPirateApp {
     uint8_t emulate_nav_pending;
 #endif
     const ProtoPirateConfigPlugin* config_plugin;
+    CompositeApiResolver* psa_bf_plugin_resolver;
+    PluginManager* psa_bf_plugin_manager;
     const ProtoPiratePsaBfPlugin* psa_bf_plugin;
     const ProtoPirateToolScenePlugin* tool_scene_plugin;
     ProtoPirateToolScenePluginKind tool_scene_plugin_kind;
