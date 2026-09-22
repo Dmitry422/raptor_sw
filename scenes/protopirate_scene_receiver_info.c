@@ -114,8 +114,7 @@ static void protopirate_receiver_info_build_normal_widget(ProtoPirateApp* app) {
 
     bool needs_bf = false;
     if(offers_bf && protopirate_psa_bf_plugin_ensure_loaded(app) && app->psa_bf_plugin) {
-        needs_bf = app->psa_bf_plugin->widget_left_should_bruteforce(
-            app, ProtoPiratePsaBfContextReceiverInfo);
+        needs_bf = app->psa_bf_plugin->widget_left_should_bruteforce(app, ff);
     }
     protopirate_psa_bf_plugin_unload_if_idle(app);
     if(needs_bf) {

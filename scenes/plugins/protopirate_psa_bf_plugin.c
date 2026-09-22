@@ -82,7 +82,7 @@ static void bf_free_states(void) {
     g_bf_kind = ProtoPirateBfKindNone;
 }
 
-static bool item_needs_bruteforce_from_ff(FlipperFormat* ff) {
+static bool psa_bf_needs_bruteforce(FlipperFormat* ff) {
     if(!ff) return false;
     FuriString* s = furi_string_alloc();
 
@@ -307,10 +307,8 @@ static void bf_cancel_thread(void) {
     bf_free_states();
 }
 
-static bool plugin_needs_bruteforce(void* app, ProtoPiratePsaBfContext ctx) {
-    UNUSED(ctx);
-    FlipperFormat* ff = g_host_api->get_history_flipper_format(app);
-    return item_needs_bruteforce_from_ff(ff) || hitag2_bf_needs_bruteforce(ff);
+static bool plugin_needs_bruteforce(FlipperFormat* ff) {
+    return psa_bf_needs_bruteforce(ff) || hitag2_bf_needs_bruteforce(ff);
 }
 
 static bool plugin_is_running(void* app) {
@@ -333,9 +331,9 @@ static bool start_bruteforce(void* app) {
     if(g_bf_thread) return false;
 
     FlipperFormat* ff = g_host_api->get_history_flipper_format(app);
-    if(!ff || !plugin_needs_bruteforce(app, g_active_ctx)) return false;
+    if(!ff || !plugin_needs_bruteforce(ff)) return false;
 
-    if(item_needs_bruteforce_from_ff(ff)) {
+    if(psa_bf_needs_bruteforce(ff)) {
         PsaBfState* state = malloc(sizeof(PsaBfState));
         if(!state) {
             g_host_api->notification_error(app);
@@ -469,8 +467,11 @@ static void plugin_on_scene_exit(void* app, ProtoPiratePsaBfContext ctx) {
     bf_cancel_thread();
 }
 
-static bool plugin_widget_left_should_bruteforce(void* app, ProtoPiratePsaBfContext ctx) {
-    return !g_bf_thread && plugin_needs_bruteforce(app, ctx);
+static bool plugin_widget_left_should_bruteforce(void* app, FlipperFormat* ff) {
+    if(!ff) {
+        ff = g_host_api->get_history_flipper_format(app);
+    }
+    return !g_bf_thread && plugin_needs_bruteforce(ff);
 }
 
 static void plugin_context_release(void* app) {

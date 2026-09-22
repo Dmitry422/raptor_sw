@@ -40,11 +40,11 @@ typedef struct {
 typedef struct {
     const char* plugin_name;
     void (*set_host_api)(const ProtoPiratePsaBfHostApi* api);
-    bool (*needs_bruteforce)(void* app, ProtoPiratePsaBfContext ctx);
+    bool (*needs_bruteforce)(FlipperFormat* ff);
     bool (*is_running)(void* app);
     void (*on_scene_enter)(void* app, ProtoPiratePsaBfContext ctx);
     bool (*on_scene_event)(void* app, ProtoPiratePsaBfContext ctx, SceneManagerEvent event);
     void (*on_scene_exit)(void* app, ProtoPiratePsaBfContext ctx);
-    bool (*widget_left_should_bruteforce)(void* app, ProtoPiratePsaBfContext ctx);
+    bool (*widget_left_should_bruteforce)(void* app, FlipperFormat* ff);
     void (*context_release)(void* app);
 } ProtoPiratePsaBfPlugin;

@@ -1331,8 +1331,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                         app->txrx->idx_menu_chosen = ctx->selected_history_index;
                         bool needs_bf = false;
                         if(protopirate_psa_bf_plugin_ensure_loaded(app) && app->psa_bf_plugin) {
-                            needs_bf = app->psa_bf_plugin->needs_bruteforce(
-                                app, ProtoPiratePsaBfContextSubDecode);
+                            needs_bf = app->psa_bf_plugin->needs_bruteforce(ff);
                         }
                         protopirate_psa_bf_plugin_unload_if_idle(app);
                         if(needs_bf) {
