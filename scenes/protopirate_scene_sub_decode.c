@@ -783,7 +783,9 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             }
             consumed = true;
             return consumed;
-        } else if(event.event == ProtoPirateCustomEventPsaBruteforceComplete) {
+        } else if(
+            event.event == ProtoPirateCustomEventPsaBruteforceComplete ||
+            event.event == ProtoPirateCustomEventReceiverInfoBruteforceCancel) {
             app->txrx->idx_menu_chosen = ctx->selected_history_index;
             if(app->psa_bf_plugin) {
                 app->psa_bf_plugin->on_scene_event(app, ProtoPiratePsaBfContextSubDecode, event);

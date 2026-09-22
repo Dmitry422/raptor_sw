@@ -279,7 +279,8 @@ static void bf_finish_and_show_result(void* app, ButtonCallback result_callback)
             g_host_api->notification_success(app);
         }
         ButtonCallback ok_cb = result_callback;
-        if(!ok_cb && (g_active_ctx == ProtoPiratePsaBfContextReceiverInfo)) {
+        if(!ok_cb && (g_active_ctx == ProtoPiratePsaBfContextReceiverInfo ||
+                      g_active_ctx == ProtoPiratePsaBfContextSubDecode)) {
             ok_cb = bf_result_ok_callback;
         }
         show_bf_result(app, status, ok_cb);
@@ -406,12 +407,7 @@ static bool
             if(bfst == PSA_BF_STATUS_IDLE || bfst == PSA_BF_STATUS_RUNNING) {
                 show_bf_progress(app);
             } else {
-                if(ctx == ProtoPiratePsaBfContextSubDecode) {
-                    g_host_api->send_custom_event(
-                        app, ProtoPirateCustomEventPsaBruteforceComplete);
-                } else {
-                    bf_finish_and_show_result(app, NULL);
-                }
+                bf_finish_and_show_result(app, NULL);
             }
             return true;
         }
