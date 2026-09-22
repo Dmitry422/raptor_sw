@@ -18,6 +18,7 @@ typedef struct Widget Widget;
 typedef enum {
     ProtoPiratePsaBfContextReceiverInfo,
     ProtoPiratePsaBfContextSubDecode,
+    ProtoPiratePsaBfContextSavedInfo,
 } ProtoPiratePsaBfContext;
 
 typedef struct {
@@ -33,8 +34,10 @@ typedef struct {
     void (*notification_error)(void* app);
     void (*notification_success)(void* app);
     void (*receiver_info_rebuild_widget)(void* app);
+    void (*saved_info_rebuild_widget)(void* app);
     void (*subdecode_signal_info_refresh)(void* app);
     void (*scene_previous)(void* app);
+    const char* (*get_loaded_file_path)(void* app);
 } ProtoPiratePsaBfHostApi;
 
 typedef struct {

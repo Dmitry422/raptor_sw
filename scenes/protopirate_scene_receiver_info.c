@@ -156,6 +156,10 @@ void protopirate_receiver_info_rebuild_normal_widget(void* app) {
     protopirate_receiver_info_build_normal_widget((ProtoPirateApp*)app);
 }
 
+void protopirate_saved_info_rebuild_normal_widget(void* app) {
+    protopirate_scene_saved_info_on_enter((ProtoPirateApp*)app);
+}
+
 static void protopirate_scene_receiver_info_widget_callback(
     GuiButtonType result,
     InputType type,
@@ -173,7 +177,7 @@ static void protopirate_scene_receiver_info_widget_callback(
             if(scene_manager_get_scene_state(app->scene_manager, ProtoPirateSceneSubDecode) ==
                STATE_BF) {
                 view_dispatcher_send_custom_event(
-                    app->view_dispatcher, ProtoPirateCustomEventReceiverInfoBruteforceStart);
+                    app->view_dispatcher, ProtoPirateCustomEventBruteforceStart);
 
             }
 #ifdef ENABLE_EMULATE_FEATURE
@@ -184,7 +188,7 @@ static void protopirate_scene_receiver_info_widget_callback(
 #endif
         } else if(result == GuiButtonTypeCenter) {
             view_dispatcher_send_custom_event(
-                app->view_dispatcher, ProtoPirateCustomEventReceiverInfoBruteforceCancel);
+                app->view_dispatcher, ProtoPirateCustomEventBruteforceComplete);
         }
     }
 }
@@ -218,15 +222,14 @@ bool protopirate_scene_receiver_info_on_event(void* context, SceneManagerEvent e
     bool consumed = false;
 
     if((event.type == SceneManagerEventTypeCustom) &&
-       (event.event == ProtoPirateCustomEventReceiverInfoBruteforceStart)) {
+       (event.event == ProtoPirateCustomEventBruteforceStart)) {
         protopirate_psa_bf_plugin_ensure_loaded(app);
     }
 
     if(app->psa_bf_plugin) {
         if(app->psa_bf_plugin->is_running(app) ||
-           event.event == ProtoPirateCustomEventPsaBruteforceComplete ||
-           event.event == ProtoPirateCustomEventReceiverInfoBruteforceStart ||
-           event.event == ProtoPirateCustomEventReceiverInfoBruteforceCancel) {
+           event.event == ProtoPirateCustomEventBruteforceComplete ||
+           event.event == ProtoPirateCustomEventBruteforceStart) {
             consumed = app->psa_bf_plugin->on_scene_event(
                 app, ProtoPiratePsaBfContextReceiverInfo, event);
             if(consumed) return true;

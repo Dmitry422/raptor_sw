@@ -376,7 +376,7 @@ static void protopirate_scene_sub_decode_widget_callback(
             const uint32_t left_event =
                 (scene_manager_get_scene_state(app->scene_manager, ProtoPirateSceneSubDecode) ==
                  STATE_BF) ?
-                    ProtoPirateCustomEventSubDecodeBruteforceStart :
+                    ProtoPirateCustomEventBruteforceStart :
                     ProtoPirateCustomEventSubDecodeEmulate;
             view_dispatcher_send_custom_event(app->view_dispatcher, left_event);
         }
@@ -773,7 +773,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             consumed = true;
         }
 #endif
-        else if(event.event == ProtoPirateCustomEventSubDecodeBruteforceStart) {
+        else if(event.event == ProtoPirateCustomEventBruteforceStart) {
             app->txrx->idx_menu_chosen = ctx->selected_history_index;
             if(protopirate_psa_bf_plugin_ensure_loaded(app) && app->psa_bf_plugin &&
                app->psa_bf_plugin->on_scene_event(app, ProtoPiratePsaBfContextSubDecode, event)) {
@@ -783,9 +783,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             }
             consumed = true;
             return consumed;
-        } else if(
-            event.event == ProtoPirateCustomEventPsaBruteforceComplete ||
-            event.event == ProtoPirateCustomEventReceiverInfoBruteforceCancel) {
+        } else if(event.event == ProtoPirateCustomEventBruteforceComplete) {
             app->txrx->idx_menu_chosen = ctx->selected_history_index;
             if(app->psa_bf_plugin) {
                 app->psa_bf_plugin->on_scene_event(app, ProtoPiratePsaBfContextSubDecode, event);
@@ -1353,7 +1351,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 }
 
 #ifdef ENABLE_EMULATE_FEATURE
-                if(!left_button_bf && app->app->emulate_feature_enabled &&
+                if(!left_button_bf && app->emulate_feature_enabled &&
                    !app->emulate_disabled_for_loaded) {
                     widget_add_button_element(
                         app->widget,
