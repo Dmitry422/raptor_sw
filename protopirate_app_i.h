@@ -129,7 +129,7 @@ struct ProtoPirateApp {
     uint32_t tool_scene_nav_target;
 
     ProtoPirateCarModel* selected_model;
-    uint32_t car_models_count;
+    uint16_t car_models_count;
 };
 
 #ifdef ENABLE_EMULATE_FEATURE
