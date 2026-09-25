@@ -63,7 +63,7 @@ App(
 # --- RX protocol plugins ---
 
 App(
-    appid="protopirate_am_plugin",
+    appid="pp_am",
     apptype=FlipperAppType.PLUGIN,
     entry_point="protopirate_am_plugin_ep",
     requires=["proto_pirate"],
@@ -92,7 +92,7 @@ App(
 )
 
 App(
-    appid="protopirate_am_vag_plugin",
+    appid="pp_am_vag",
     apptype=FlipperAppType.PLUGIN,
     entry_point="protopirate_am_vag_plugin_ep",
     requires=["proto_pirate"],
@@ -107,7 +107,7 @@ App(
 )
 
 App(
-    appid="protopirate_fm_plugin",
+    appid="pp_fm",
     apptype=FlipperAppType.PLUGIN,
     entry_point="protopirate_fm_plugin_ep",
     requires=["proto_pirate"],
@@ -131,7 +131,7 @@ App(
 )
 
 App(
-    appid="protopirate_fm_f4_plugin",
+    appid="pp_fm_f4",
     apptype=FlipperAppType.PLUGIN,
     entry_point="protopirate_fm_f4_plugin_ep",
     requires=["proto_pirate"],
@@ -148,7 +148,7 @@ App(
 )
 
 App(
-    appid="protopirate_fm_honda1_plugin",
+    appid="pp_fm_honda1",
     apptype=FlipperAppType.PLUGIN,
     entry_point="protopirate_fm_honda1_plugin_ep",
     requires=["proto_pirate"],
@@ -183,7 +183,7 @@ def ProtoPirateTxProtocolPlugin(
         return
 
     App(
-        appid=f"protopirate_tx_{key}_plugin",
+        appid=f"pp_tx_{key}",
         apptype=FlipperAppType.PLUGIN,
         entry_point="protopirate_tx_protocol_plugin_ep",
         requires=["proto_pirate"],
@@ -362,7 +362,7 @@ ProtoPirateTxProtocolPlugin(
 # --- Tool / scene plugins ---
 
 App(
-    appid="protopirate_sub_decode_plugin",
+    appid="pp_sub_decode",
     apptype=FlipperAppType.PLUGIN,
     entry_point="protopirate_sub_decode_plugin_ep",
     requires=["proto_pirate"],
@@ -381,7 +381,7 @@ App(
 
 if _ENABLE_TIMING_TUNER:
     App(
-        appid="protopirate_timing_tuner_plugin",
+        appid="pp_timing_tuner",
         apptype=FlipperAppType.PLUGIN,
         entry_point="protopirate_timing_tuner_plugin_ep",
         requires=["proto_pirate"],
@@ -395,7 +395,7 @@ if _ENABLE_TIMING_TUNER:
 
 if _ENABLE_EMULATE:
     App(
-        appid="protopirate_emulate_plugin",
+        appid="pp_emulate",
         apptype=FlipperAppType.PLUGIN,
         entry_point="protopirate_emulate_plugin_ep",
         requires=["proto_pirate"],
@@ -407,7 +407,7 @@ if _ENABLE_EMULATE:
     )
 
 App(
-    appid="protopirate_psa_bf_plugin",
+    appid="pp_bf",
     apptype=FlipperAppType.PLUGIN,
     entry_point="protopirate_psa_bf_plugin_ep",
     requires=["proto_pirate"],
@@ -425,7 +425,7 @@ App(
 )
 
 App(
-    appid="protopirate_config_plugin",
+    appid="pp_config",
     apptype=FlipperAppType.PLUGIN,
     entry_point="protopirate_config_plugin_ep",
     requires=["proto_pirate"],
@@ -440,7 +440,7 @@ App(
 )
 
 App(
-    appid="protopirate_saved_info_plugin",
+    appid="pp_saved_info",
     apptype=FlipperAppType.PLUGIN,
     entry_point="protopirate_saved_info_plugin_ep",
     requires=["proto_pirate"],

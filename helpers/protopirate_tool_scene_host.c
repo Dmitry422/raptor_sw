@@ -7,9 +7,9 @@
 
 #define TAG "ProtoPirateToolScene"
 
-#define SUB_DECODE_PLUGIN_PATH APP_ASSETS_PATH("plugins/protopirate_sub_decode_plugin.fal")
+#define SUB_DECODE_PLUGIN_PATH APP_ASSETS_PATH("plugins/pp_sub_decode.fal")
 #ifdef ENABLE_TIMING_TUNER_SCENE
-#define TIMING_TUNER_PLUGIN_PATH APP_ASSETS_PATH("plugins/protopirate_timing_tuner_plugin.fal")
+#define TIMING_TUNER_PLUGIN_PATH APP_ASSETS_PATH("plugins/pp_timing_tuner.fal")
 #endif
 
 static const char* protopirate_tool_scene_plugin_path(ProtoPirateToolScenePluginKind kind) {

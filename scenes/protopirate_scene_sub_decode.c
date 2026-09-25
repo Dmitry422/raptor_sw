@@ -36,7 +36,7 @@ void protopirate_scene_sub_decode_on_exit(void* context) {
 #include <lib/subghz/types.h>
 
 #ifdef PROTOPIRATE_SUB_DECODE_PLUGIN_BUILD
-#include "protopirate_sub_decode_plugin_icons.h"
+#include "pp_sub_decode_icons.h"
 #else
 #include "proto_pirate_icons.h"
 #endif
@@ -1468,7 +1468,7 @@ static void sub_decode_plugin_set_host_api(const ProtoPirateToolSceneHostApi* ho
 }
 
 static const ProtoPirateToolScenePlugin protopirate_sub_decode_plugin = {
-    .plugin_name = "ProtoPirate Sub Decode",
+    .plugin_name = "Sub Decode",
     .kind = ProtoPirateToolScenePluginKindSubDecode,
     .set_host_api = sub_decode_plugin_set_host_api,
     .on_enter = protopirate_scene_sub_decode_on_enter,
