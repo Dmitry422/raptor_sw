@@ -19,13 +19,13 @@ ModelName4: 315 Mhz FM476
 Frequency4: 315000000
 PresetName4: FuriHalSubGhzPreset2FSKDev476Async
 
-ModelName5: Ford Falcon BA-FGX
+ModelName5: Ford 433.92 Mhz AM
 Frequency5: 433920000
 PresetName5: FuriHalSubGhzPresetOok650Async
 
-ModelName6: Ford Territory SX-SYII
+ModelName6: Ford 433.92 Mhz FM
 Frequency6: 433920000
-PresetName6: FuriHalSubGhzPresetOok650Async
+PresetName6: FuriHalSubGhzPreset2FSKDev476Async
 
 ModelName7: Honda 433.92 Mhz
 Frequency7: 433920000
