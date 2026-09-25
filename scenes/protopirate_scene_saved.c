@@ -34,7 +34,7 @@ void protopirate_scene_saved_on_enter(void* context) {
     }
 
     DialogsFileBrowserOptions browser_options;
-    dialog_file_browser_set_basic_options(&browser_options, ".psf", &I_subghz_10px);
+    dialog_file_browser_set_basic_options(&browser_options, ".psf", &I_protopirate_10px);
     browser_options.base_path = PROTOPIRATE_APP_FOLDER;
     browser_options.skip_assets = true;
     browser_options.hide_dot_files = true;
