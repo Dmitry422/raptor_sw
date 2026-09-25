@@ -435,7 +435,7 @@ App(
         "helpers/variable_item_list.c",
         "scenes/plugins/protopirate_config_plugin.c",
     ],
-    fap_icon_assets="images",
+    fap_icon_assets="helpers/variable_item_list_images",
     fal_embedded=True,
 )
 
