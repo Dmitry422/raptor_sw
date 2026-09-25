@@ -242,8 +242,13 @@ ProtoPirateApp* protopirate_app_alloc() {
         settings.auto_save,
         settings.hopping_enabled);
 
-    config_or_saved_plugin_load(app, true);
-    app->car_models_count = app->config_plugin->car_model_get_count();
+    //Load the models database, get the count of the models for the list.
+    if(config_or_saved_plugin_load(app, true) && app->config_plugin) {
+        app->car_models_count = app->config_plugin->car_model_get_count();
+    } else {
+        notification_message(app->notifications, &sequence_error);
+        app->car_models_count = 0;
+    }
     app->selected_model = malloc(sizeof(ProtoPirateCarModel));
     app->selected_model->name = furi_string_alloc();
     app->selected_model->preset = NULL; // important initialization
@@ -251,24 +256,35 @@ ProtoPirateApp* protopirate_app_alloc() {
     app->variable_item_list = NULL;
 
     //Grab selected car model.
-    if(settings.car_model_index) {
-        app->config_plugin->car_model_get_by_index(
-            app->selected_model, settings.car_model_index, app->car_models_count, app->setting);
-        app->selected_model->last_preset_index = settings.preset_index;
+    if(app->config_plugin) {
+        if(settings.car_model_index) {
+            //Get the selected car model.
+            app->config_plugin->car_model_get_by_index(
+                app->selected_model, settings.car_model_index, app->car_models_count, app->setting);
+            app->selected_model->last_preset_index = settings.preset_index;
 
-        protopirate_preset_init(
-            app,
-            furi_string_get_cstr(app->selected_model->preset->name),
-            app->selected_model->preset->frequency,
-            app->selected_model->preset->data,
-            app->selected_model->preset->data_size);
+            //Preset for the selected model...
+            protopirate_preset_init(
+                app,
+                furi_string_get_cstr(app->selected_model->preset->name),
+                app->selected_model->preset->frequency,
+                app->selected_model->preset->data,
+                app->selected_model->preset->data_size);
+        } else {
+            //This will return Select a model or No Models in Database
+            app->config_plugin->car_model_get_by_index(
+                app->selected_model, 0, app->car_models_count, app->setting);
+
+            //Preset set in Config.
+            protopirate_preset_init(app, preset_name, frequency, preset_data, preset_data_size);
+        }
+
+        //Kill the config plugin now.
+        config_or_saved_plugin_unload(app, true);
     } else {
-        app->config_plugin->car_model_get_by_index(
-            app->selected_model, 0, app->car_models_count, app->setting);
-
+        //Preset set in Config.
         protopirate_preset_init(app, preset_name, frequency, preset_data, preset_data_size);
     }
-    config_or_saved_plugin_unload(app, true);
 
     // Apply hopping state from settings
     app->txrx->hopper_state = settings.hopping_enabled ? ProtoPirateHopperStateRunning :
