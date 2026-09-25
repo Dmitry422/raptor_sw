@@ -10,7 +10,7 @@
 #include "helpers/protopirate_radio.h"
 #include <string.h>
 
-#define TAG "ProtoPirateApp"
+#define TAG "PPApp"
 
 // -----------------------------------------------------------------------------
 // Plugin load / unload

@@ -41,7 +41,7 @@ void protopirate_scene_sub_decode_on_exit(void* context) {
 #include "proto_pirate_icons.h"
 #endif
 
-#define TAG "ProtoPirateSubDecode"
+#define TAG "PPSubDecode"
 
 static const ProtoPirateToolSceneHostApi* g_tool_scene_host_api = NULL;
 

@@ -6,7 +6,7 @@
 #include "proto_pirate_icons.h"
 #include <storage/storage.h>
 
-#define TAG "ProtoPirateReceiverInfo"
+#define TAG "PPReceiverInfo"
 
 #define STATE_EMULATE 0
 #define STATE_BF      1

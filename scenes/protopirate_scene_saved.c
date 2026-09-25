@@ -4,7 +4,7 @@
 
 #include "proto_pirate_icons.h"
 
-#define TAG "ProtoPirateSceneSaved"
+#define TAG "PPSceneSaved"
 
 void protopirate_scene_saved_on_enter(void* context) {
     furi_check(context);

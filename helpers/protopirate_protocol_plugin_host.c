@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define TAG "ProtoPirateProtocolPlugin"
+#define TAG "PPProtocolPlugin"
 #ifdef ENABLE_EMULATE_FEATURE
 #define PROTOPIRATE_TX_PLUGIN_PATH_MAX 160U
 #endif

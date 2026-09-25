@@ -5,7 +5,7 @@
 #include <loader/firmware_api/firmware_api.h>
 #include <notification/notification_messages.h>
 
-#define TAG "ProtoPirateToolScene"
+#define TAG "PPToolScene"
 
 #define SUB_DECODE_PLUGIN_PATH APP_ASSETS_PATH("plugins/pp_sub_decode.fal")
 #ifdef ENABLE_TIMING_TUNER_SCENE

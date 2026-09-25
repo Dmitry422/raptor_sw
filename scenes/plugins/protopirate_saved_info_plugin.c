@@ -7,7 +7,7 @@
 
 static const ProtoPirateSavedInfoSceneHostApi* g_saved_info_scene_host_api = NULL;
 
-#define TAG "ProtoPirateSavedInfoPlugin"
+#define TAG "PPSavedInfoPlugin"
 
 #define STATE_EMULATE 0
 #define STATE_BF      1

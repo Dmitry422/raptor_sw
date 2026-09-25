@@ -23,7 +23,7 @@ void protopirate_scene_timing_tuner_on_exit(void* context) {
 #include <gui/elements.h>
 #include <math.h>
 
-#define TAG "ProtoPirateTimingTuner"
+#define TAG "PPTimingTuner"
 
 static const ProtoPirateToolSceneHostApi* g_tool_scene_host_api = NULL;
 

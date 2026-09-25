@@ -11,7 +11,7 @@
 #include <lib/flipper_application/plugins/plugin_manager.h>
 #include <lib/flipper_application/plugins/composite_resolver.h>
 
-#define TAG "ProtoPirateSceneEmulate"
+#define TAG "PPSceneEmulate"
 
 #define EMULATE_PLUGIN_PATH APP_ASSETS_PATH("plugins/pp_emulate.fal")
 

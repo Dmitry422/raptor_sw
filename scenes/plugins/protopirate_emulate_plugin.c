@@ -31,7 +31,7 @@
 #include <furi.h>
 #include <string.h>
 
-#define TAG "ProtoPirateEmulatePlugin"
+#define TAG "PPEmulatePlugin"
 
 #define MIN_TX_TIME              666U
 #define MIN_TX_TIME_KIA_V3_V4    1600U
