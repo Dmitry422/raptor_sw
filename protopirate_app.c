@@ -185,7 +185,7 @@ ProtoPirateApp* protopirate_app_alloc() {
     app->save_protocol = NULL;
     app->save_history_idx = 0;
     app->emulate_disabled_for_loaded = false;
-    memset(app->save_filename, 0, sizeof(app->save_filename));
+    app->save_filename = NULL;
 
     // File Browser path
     app->file_path = furi_string_alloc();
@@ -409,6 +409,11 @@ void protopirate_app_free(ProtoPirateApp* app) {
     }
 
     protopirate_views_free(app);
+
+    if(app->save_filename) {
+        free(app->save_filename);
+        app->save_filename = NULL;
+    }
 
     if(app->file_path) {
         FURI_LOG_D(TAG, "Freeing file_path");
