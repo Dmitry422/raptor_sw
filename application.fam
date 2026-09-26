@@ -430,13 +430,13 @@ App(
     apptype=FlipperAppType.PLUGIN,
     entry_point="protopirate_config_plugin_ep",
     requires=["proto_pirate"],
-    cdefines=["PROTOPIRATE_CONFIG_PLUGIN_BUILD"],
+    cdefines=["PROTOPIRATE_CONFIG_PLUGIN_BUILD=1"],
     sources=[
         "helpers/protopirate_models.c",
         "helpers/variable_item_list.c",
         "scenes/plugins/protopirate_config_plugin.c",
     ],
-    fap_icon_assets="helpers/variable_item_list_images",
+    fap_icon_assets="images",
     fal_embedded=True,
 )
 
@@ -445,7 +445,7 @@ App(
     apptype=FlipperAppType.PLUGIN,
     entry_point="protopirate_saved_info_plugin_ep",
     requires=["proto_pirate"],
-    cdefines=["PROTOPIRATE_SAVED_INFO_PLUGIN_BUILD"],
+    cdefines=["PROTOPIRATE_SAVED_INFO_PLUGIN_BUILD=1"],
     sources=[
         "scenes/plugins/protopirate_saved_info_plugin.c",
         "protocols/protocols_common.c",
@@ -459,7 +459,7 @@ App(
     apptype=FlipperAppType.PLUGIN,
     entry_point="protopirate_about_plugin_ep",
     requires=["proto_pirate"],
-    cdefines=["PROTOPIRATE_ABOUT_PLUGIN_BUILD"],
+    cdefines=["PROTOPIRATE_ABOUT_PLUGIN_BUILD=1"],
     sources=[
         "scenes/plugins/protopirate_about_plugin.c",
     ],
