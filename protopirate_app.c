@@ -160,7 +160,6 @@ ProtoPirateApp* protopirate_app_alloc() {
         app->view_dispatcher, ProtoPirateViewSubmenu, submenu_get_view(app->submenu));
 
     app->save_protocol = NULL;
-    app->save_from_saved_info = false;
     app->save_history_idx = 0;
     app->emulate_disabled_for_loaded = false;
     memset(app->save_filename, 0, sizeof(app->save_filename));

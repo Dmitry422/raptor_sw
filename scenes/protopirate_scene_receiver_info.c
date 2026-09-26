@@ -329,7 +329,6 @@ bool protopirate_scene_receiver_info_on_event(void* context, SceneManagerEvent e
                 if(app->save_protocol) furi_string_free(app->save_protocol);
                 app->save_protocol = protocol; // transfer ownership
                 app->save_history_idx = app->txrx->idx_menu_chosen;
-                app->save_from_saved_info = false;
 
                 // Configure and show text input
                 text_input_reset(app->text_input);

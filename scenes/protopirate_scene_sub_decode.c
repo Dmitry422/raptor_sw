@@ -689,7 +689,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
 
                 // Store context for when text input confirms
                 app->save_history_idx = app->txrx->idx_menu_chosen;
-                app->save_from_saved_info = false;
 
                 //Make sure we have a text input window.
                 app->text_input = text_input_alloc();
