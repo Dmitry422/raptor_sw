@@ -59,7 +59,6 @@ typedef struct ProtoPirateTxRx {
     SubGhzReceiver* receiver;
     SubGhzRadioPreset* preset;
     const SubGhzProtocolRegistry* protocol_registry;
-    CompositeApiResolver* plugin_resolver;
     PluginManager* protocol_plugin_manager;
     const ProtoPirateProtocolPlugin* protocol_plugin;
     ProtoPirateProtocolRegistryRoute protocol_registry_route;
@@ -73,6 +72,7 @@ typedef struct ProtoPirateTxRx {
     uint16_t idx_menu_chosen;
 } ProtoPirateTxRx;
 
+typedef struct ProtoPirateConfigPlugin ProtoPirateConfigPlugin;
 struct ProtoPirateApp {
     Gui* gui;
     ViewDispatcher* view_dispatcher;
@@ -101,10 +101,9 @@ struct ProtoPirateApp {
     uint8_t emulate_feature_enabled      : 1;
     uint32_t start_tx_time;
     uint8_t tx_power;
-    char save_filename[64];
+    char* save_filename;
     FuriString* save_protocol;
     uint16_t save_history_idx;
-    CompositeApiResolver* plugin_resolver;
     PluginManager* plugin_manager;
 #ifdef ENABLE_EMULATE_FEATURE
 #define EMULATE_NAV_NONE     0U
@@ -116,10 +115,8 @@ struct ProtoPirateApp {
     const ProtoPirateConfigPlugin* config_plugin;
     const ProtoPirateSavedInfoPlugin* saved_info_plugin;
     const ProtoPirateAboutPlugin* about_plugin;
-    CompositeApiResolver* psa_bf_plugin_resolver;
     PluginManager* psa_bf_plugin_manager;
     const ProtoPiratePsaBfPlugin* psa_bf_plugin;
-    CompositeApiResolver* tool_scene_plugin_resolver;
     PluginManager* tool_scene_plugin_manager;
     const ProtoPirateToolScenePlugin* tool_scene_plugin;
     ProtoPirateToolScenePluginKind tool_scene_plugin_kind;

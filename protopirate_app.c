@@ -30,11 +30,6 @@ void shared_plugin_unload(ProtoPirateApp* app, ProtoPirateSharedPlugin plugin_ty
         plugin_manager_free(app->plugin_manager);
         app->plugin_manager = NULL;
     }
-
-    if(app->plugin_resolver) {
-        composite_api_resolver_free(app->plugin_resolver);
-        app->plugin_resolver = NULL;
-    }
 }
 
 bool shared_plugin_load(ProtoPirateApp* app, ProtoPirateSharedPlugin plugin_type) {
@@ -48,7 +43,7 @@ bool shared_plugin_load(ProtoPirateApp* app, ProtoPirateSharedPlugin plugin_type
         if(app->about_plugin) return true;
     }
 
-    if(app->plugin_manager || app->plugin_resolver) {
+    if(app->plugin_manager) {
         shared_plugin_unload(app, plugin_type);
     }
 
@@ -122,7 +117,7 @@ bool shared_plugin_load(ProtoPirateApp* app, ProtoPirateSharedPlugin plugin_type
         app->about_plugin = plugin_about;
     }
 
-    app->plugin_resolver = resolver;
+    composite_api_resolver_free(resolver);
     app->plugin_manager = manager;
     return true;
 }
@@ -190,7 +185,7 @@ ProtoPirateApp* protopirate_app_alloc() {
     app->save_protocol = NULL;
     app->save_history_idx = 0;
     app->emulate_disabled_for_loaded = false;
-    memset(app->save_filename, 0, sizeof(app->save_filename));
+    app->save_filename = NULL;
 
     // File Browser path
     app->file_path = furi_string_alloc();
@@ -414,6 +409,11 @@ void protopirate_app_free(ProtoPirateApp* app) {
     }
 
     protopirate_views_free(app);
+
+    if(app->save_filename) {
+        free(app->save_filename);
+        app->save_filename = NULL;
+    }
 
     if(app->file_path) {
         FURI_LOG_D(TAG, "Freeing file_path");

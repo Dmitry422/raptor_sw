@@ -140,11 +140,6 @@ static void protopirate_tool_scene_plugin_unload(ProtoPirateApp* app) {
         plugin_manager_free(app->tool_scene_plugin_manager);
         app->tool_scene_plugin_manager = NULL;
     }
-
-    if(app->tool_scene_plugin_resolver) {
-        composite_api_resolver_free(app->tool_scene_plugin_resolver);
-        app->tool_scene_plugin_resolver = NULL;
-    }
 }
 
 static bool protopirate_tool_scene_plugin_ensure_loaded(
@@ -203,7 +198,7 @@ static bool protopirate_tool_scene_plugin_ensure_loaded(
         return false;
     }
 
-    app->tool_scene_plugin_resolver = resolver;
+    composite_api_resolver_free(resolver);
     app->tool_scene_plugin_manager = manager;
     app->tool_scene_plugin = plugin;
     app->tool_scene_plugin_kind = kind;
