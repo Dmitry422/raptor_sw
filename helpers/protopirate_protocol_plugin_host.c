@@ -66,11 +66,6 @@ void protopirate_unload_protocol_plugin(ProtoPirateTxRx* txrx) {
         plugin_manager_free(txrx->protocol_plugin_manager);
         txrx->protocol_plugin_manager = NULL;
     }
-
-    if(txrx->plugin_resolver) {
-        composite_api_resolver_free(txrx->plugin_resolver);
-        txrx->plugin_resolver = NULL;
-    }
 }
 
 static bool protopirate_ensure_protocol_registry_plugin(
@@ -95,8 +90,7 @@ static bool protopirate_ensure_protocol_registry_plugin(
         return true;
     }
 
-    if(app->txrx->protocol_plugin || app->txrx->protocol_plugin_manager ||
-       app->txrx->plugin_resolver) {
+    if(app->txrx->protocol_plugin || app->txrx->protocol_plugin_manager) {
         protopirate_unload_protocol_plugin(app->txrx);
     }
 
@@ -154,11 +148,10 @@ static bool protopirate_ensure_protocol_registry_plugin(
             plugin->release();
         }
         plugin_manager_free(manager);
-        composite_api_resolver_free(resolver);
         return false;
     }
 
-    app->txrx->plugin_resolver = resolver;
+    composite_api_resolver_free(resolver);
     app->txrx->protocol_plugin_manager = manager;
     app->txrx->protocol_plugin = plugin;
     app->txrx->protocol_registry_route = route;
@@ -205,8 +198,7 @@ static bool protopirate_ensure_tx_protocol_plugin(
         return true;
     }
 
-    if(app->txrx->protocol_plugin || app->txrx->protocol_plugin_manager ||
-       app->txrx->plugin_resolver) {
+    if(app->txrx->protocol_plugin || app->txrx->protocol_plugin_manager) {
         protopirate_unload_protocol_plugin(app->txrx);
     }
 
@@ -260,7 +252,7 @@ static bool protopirate_ensure_tx_protocol_plugin(
         return false;
     }
 
-    app->txrx->plugin_resolver = resolver;
+    composite_api_resolver_free(resolver);
     app->txrx->protocol_plugin_manager = manager;
     app->txrx->protocol_plugin = plugin;
     *registry = plugin->registry;

@@ -30,11 +30,6 @@ void shared_plugin_unload(ProtoPirateApp* app, ProtoPirateSharedPlugin plugin_ty
         plugin_manager_free(app->plugin_manager);
         app->plugin_manager = NULL;
     }
-
-    if(app->plugin_resolver) {
-        composite_api_resolver_free(app->plugin_resolver);
-        app->plugin_resolver = NULL;
-    }
 }
 
 bool shared_plugin_load(ProtoPirateApp* app, ProtoPirateSharedPlugin plugin_type) {
@@ -48,7 +43,7 @@ bool shared_plugin_load(ProtoPirateApp* app, ProtoPirateSharedPlugin plugin_type
         if(app->about_plugin) return true;
     }
 
-    if(app->plugin_manager || app->plugin_resolver) {
+    if(app->plugin_manager) {
         shared_plugin_unload(app, plugin_type);
     }
 
@@ -122,7 +117,7 @@ bool shared_plugin_load(ProtoPirateApp* app, ProtoPirateSharedPlugin plugin_type
         app->about_plugin = plugin_about;
     }
 
-    app->plugin_resolver = resolver;
+    composite_api_resolver_free(resolver);
     app->plugin_manager = manager;
     return true;
 }

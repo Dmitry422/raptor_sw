@@ -98,11 +98,6 @@ static void emulate_plugin_unload(ProtoPirateApp* app) {
         plugin_manager_free(app->plugin_manager);
         app->plugin_manager = NULL;
     }
-
-    if(app->plugin_resolver) {
-        composite_api_resolver_free(app->plugin_resolver);
-        app->plugin_resolver = NULL;
-    }
 }
 
 static bool emulate_plugin_load(ProtoPirateApp* app) {
@@ -110,7 +105,7 @@ static bool emulate_plugin_load(ProtoPirateApp* app) {
 
     if(app->emulate_plugin) return true;
 
-    if(app->plugin_manager || app->plugin_resolver) {
+    if(app->plugin_manager) {
         emulate_plugin_unload(app);
     }
 
@@ -148,7 +143,7 @@ static bool emulate_plugin_load(ProtoPirateApp* app) {
         return false;
     }
 
-    app->plugin_resolver = resolver;
+    composite_api_resolver_free(resolver);
     app->plugin_manager = manager;
     app->emulate_plugin = plugin;
 
