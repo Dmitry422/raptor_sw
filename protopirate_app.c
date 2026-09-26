@@ -15,13 +15,16 @@
 // -----------------------------------------------------------------------------
 // Plugin load / unload
 // -----------------------------------------------------------------------------
-void config_or_saved_plugin_unload(ProtoPirateApp* app, bool unload_config) {
+void shared_plugin_unload(ProtoPirateApp* app, ProtoPirateSharedPlugin plugin_type) {
     furi_check(app);
 
-    if(unload_config)
+    if(plugin_type == ProtoPirateSharedPluginsConfig) {
         app->config_plugin = NULL;
-    else
+    } else if(plugin_type == ProtoPirateSharedPluginsSavedInfo) {
         app->saved_info_plugin = NULL;
+    } else if(plugin_type == ProtoPirateSharedPluginsAbout) {
+        app->about_plugin = NULL;
+    }
 
     if(app->plugin_manager) {
         plugin_manager_free(app->plugin_manager);
@@ -34,17 +37,19 @@ void config_or_saved_plugin_unload(ProtoPirateApp* app, bool unload_config) {
     }
 }
 
-bool config_or_saved_plugin_load(ProtoPirateApp* app, bool load_config) {
+bool shared_plugin_load(ProtoPirateApp* app, ProtoPirateSharedPlugin plugin_type) {
     furi_check(app);
 
-    if(load_config) {
+    if(plugin_type == ProtoPirateSharedPluginsConfig) {
         if(app->config_plugin) return true;
-    } else {
+    } else if(plugin_type == ProtoPirateSharedPluginsSavedInfo) {
         if(app->saved_info_plugin) return true;
+    } else if(plugin_type == ProtoPirateSharedPluginsAbout) {
+        if(app->about_plugin) return true;
     }
 
     if(app->plugin_manager || app->plugin_resolver) {
-        config_or_saved_plugin_unload(app, load_config);
+        shared_plugin_unload(app, plugin_type);
     }
 
     CompositeApiResolver* resolver = composite_api_resolver_alloc();
@@ -54,27 +59,41 @@ bool config_or_saved_plugin_load(ProtoPirateApp* app, bool load_config) {
     }
     composite_api_resolver_add(resolver, firmware_api_interface);
 
-    PluginManager* manager = plugin_manager_alloc(
-        (load_config) ? PROTOPIRATE_CONFIG_PLUGIN_APP_ID : PROTOPIRATE_SAVED_INFO_PLUGIN_APP_ID,
-        (load_config) ? PROTOPIRATE_CONFIG_PLUGIN_API_VERSION :
-                        PROTOPIRATE_SAVED_INFO_PLUGIN_API_VERSION,
-        composite_api_resolver_get(resolver));
+    //Get the APPID and API VERSION for the Plugin we are loading.
+    const char* application_id = NULL;
+    const char* plugin_path = NULL;
+    uint32_t api_version = 0;
+    if(plugin_type == ProtoPirateSharedPluginsConfig) {
+        application_id = PROTOPIRATE_CONFIG_PLUGIN_APP_ID;
+        api_version = PROTOPIRATE_CONFIG_PLUGIN_API_VERSION;
+        plugin_path = CONFIG_PLUGIN_PATH;
+    } else if(plugin_type == ProtoPirateSharedPluginsSavedInfo) {
+        application_id = PROTOPIRATE_SAVED_INFO_PLUGIN_APP_ID;
+        api_version = PROTOPIRATE_SAVED_INFO_PLUGIN_API_VERSION;
+        plugin_path = SAVED_INFO_PLUGIN_PATH;
+    } else if(plugin_type == ProtoPirateSharedPluginsAbout) {
+        application_id = PROTOPIRATE_ABOUT_PLUGIN_APP_ID;
+        api_version = PROTOPIRATE_ABOUT_PLUGIN_API_VERSION;
+        plugin_path = ABOUT_PLUGIN_PATH;
+    }
+
+    PluginManager* manager =
+        plugin_manager_alloc(application_id, api_version, composite_api_resolver_get(resolver));
     if(!manager) {
         FURI_LOG_E(TAG, "Failed to allocate plugin manager");
         composite_api_resolver_free(resolver);
         return false;
     }
 
-    PluginManagerError error = plugin_manager_load_single(
-        manager, (load_config) ? CONFIG_PLUGIN_PATH : SAVED_INFO_PLUGIN_PATH);
+    PluginManagerError error = plugin_manager_load_single(manager, plugin_path);
     if(error != PluginManagerErrorNone) {
-        FURI_LOG_E(TAG, "Failed to load config plugin %s: %d", CONFIG_PLUGIN_PATH, (int)error);
+        FURI_LOG_E(TAG, "Failed to load plugin %s: %d", plugin_path, (int)error);
         plugin_manager_free(manager);
         composite_api_resolver_free(resolver);
         return false;
     }
 
-    if(load_config) {
+    if(plugin_type == ProtoPirateSharedPluginsConfig) {
         const ProtoPirateConfigPlugin* plugin_config = plugin_manager_get_ep(manager, 0U);
         if(!plugin_config || !plugin_config->on_enter) {
             FURI_LOG_E(TAG, "Config plugin entry point is invalid");
@@ -83,7 +102,7 @@ bool config_or_saved_plugin_load(ProtoPirateApp* app, bool load_config) {
             return false;
         }
         app->config_plugin = plugin_config;
-    } else {
+    } else if(plugin_type == ProtoPirateSharedPluginsSavedInfo) {
         const ProtoPirateSavedInfoPlugin* plugin_saved_info = plugin_manager_get_ep(manager, 0U);
         if(!plugin_saved_info || !plugin_saved_info->on_enter) {
             FURI_LOG_E(TAG, "Saved Info plugin entry point is invalid");
@@ -92,7 +111,16 @@ bool config_or_saved_plugin_load(ProtoPirateApp* app, bool load_config) {
             return false;
         }
         app->saved_info_plugin = plugin_saved_info;
-    };
+    } else if(plugin_type == ProtoPirateSharedPluginsAbout) {
+        const ProtoPirateAboutPlugin* plugin_about = plugin_manager_get_ep(manager, 0U);
+        if(!plugin_about || !plugin_about->on_enter) {
+            FURI_LOG_E(TAG, "About plugin entry point is invalid");
+            plugin_manager_free(manager);
+            composite_api_resolver_free(resolver);
+            return false;
+        }
+        app->about_plugin = plugin_about;
+    }
 
     app->plugin_resolver = resolver;
     app->plugin_manager = manager;
@@ -242,7 +270,7 @@ ProtoPirateApp* protopirate_app_alloc() {
         settings.hopping_enabled);
 
     //Load the models database, get the count of the models for the list.
-    if(config_or_saved_plugin_load(app, true) && app->config_plugin) {
+    if(shared_plugin_load(app, ProtoPirateSharedPluginsConfig) && app->config_plugin) {
         app->car_models_count = app->config_plugin->car_model_get_count();
     } else {
         notification_message(app->notifications, &sequence_error);
@@ -279,7 +307,7 @@ ProtoPirateApp* protopirate_app_alloc() {
         }
 
         //Kill the config plugin now.
-        config_or_saved_plugin_unload(app, true);
+        shared_plugin_unload(app, ProtoPirateSharedPluginsConfig);
     } else {
         //Preset set in Config.
         protopirate_preset_init(app, preset_name, frequency, preset_data, preset_data_size);
