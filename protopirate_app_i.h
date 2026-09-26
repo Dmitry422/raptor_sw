@@ -73,6 +73,7 @@ typedef struct ProtoPirateTxRx {
     uint16_t idx_menu_chosen;
 } ProtoPirateTxRx;
 
+typedef struct ProtoPirateConfigPlugin ProtoPirateConfigPlugin;
 struct ProtoPirateApp {
     Gui* gui;
     ViewDispatcher* view_dispatcher;
