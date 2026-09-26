@@ -133,7 +133,15 @@ static void about_draw_callback(Canvas* canvas, void* context) {
     // Redraw header over mask
     canvas_set_color(canvas, ColorBlack);
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, x_off, 10, "ProtoPirate v" FAP_VERSION);
+
+    //Need to get the FAP_VERSION FROM THE HOST API
+    char fap_name_and_version[20];
+    snprintf(
+        fap_name_and_version,
+        sizeof(fap_name_and_version),
+        "ProtoPirate v%s",
+        g_about_scene_host_api->fap_version);
+    canvas_draw_str(canvas, 0, 10, fap_name_and_version);
 
     canvas_set_font(canvas, FontKeyboard);
     if(g_state.frame % 8 < 4) {

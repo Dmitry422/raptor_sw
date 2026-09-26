@@ -11,6 +11,7 @@ typedef struct ProtoPirateAboutSceneHostApi {
     bool (*ensure_view_about)(ProtoPirateApp* app);
     void (*settings_load)(ProtoPirateSettings* settings);
     void (*settings_save)(ProtoPirateSettings* settings);
+    const char* fap_version;
 } ProtoPirateAboutSceneHostApi;
 
 typedef struct ProtoPirateAboutPlugin {

@@ -6,6 +6,7 @@ static const ProtoPirateAboutSceneHostApi protopirate_about_scene_host_api = {
     .ensure_view_about = protopirate_ensure_view_about,
     .settings_load = protopirate_settings_load,
     .settings_save = protopirate_settings_save,
+    .fap_version = FAP_VERSION,
 };
 
 void protopirate_scene_about_on_enter(void* context) {
