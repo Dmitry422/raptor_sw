@@ -4,7 +4,7 @@
 #include <furi.h>
 #include <string.h>
 
-#define TAG "ProtoPirateRadio"
+#define TAG "PPRadio"
 
 static void protopirate_radio_free_receiver(ProtoPirateApp* app) {
     furi_check(app);

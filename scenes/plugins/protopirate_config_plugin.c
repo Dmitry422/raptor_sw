@@ -490,7 +490,7 @@ void config_plugin_set_host_api(const ProtoPirateConfigSceneHostApi* host_api) {
 }
 
 static const ProtoPirateConfigPlugin protopirate_config_plugin = {
-    .plugin_name = "ProtoPirate Config",
+    .plugin_name = "Config",
     .car_model_get_by_index = car_model_get_by_index,
     .car_model_get_count = car_model_get_count,
     .on_enter = plugin_on_enter,

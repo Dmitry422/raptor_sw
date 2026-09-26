@@ -36,12 +36,12 @@ void protopirate_scene_sub_decode_on_exit(void* context) {
 #include <lib/subghz/types.h>
 
 #ifdef PROTOPIRATE_SUB_DECODE_PLUGIN_BUILD
-#include "protopirate_sub_decode_plugin_icons.h"
+#include "pp_sub_decode_icons.h"
 #else
 #include "proto_pirate_icons.h"
 #endif
 
-#define TAG "ProtoPirateSubDecode"
+#define TAG "PPSubDecode"
 
 static const ProtoPirateToolSceneHostApi* g_tool_scene_host_api = NULL;
 
@@ -689,7 +689,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
 
                 // Store context for when text input confirms
                 app->save_history_idx = app->txrx->idx_menu_chosen;
-                app->save_from_saved_info = false;
 
                 //Make sure we have a text input window.
                 app->text_input = text_input_alloc();
@@ -1468,7 +1467,7 @@ static void sub_decode_plugin_set_host_api(const ProtoPirateToolSceneHostApi* ho
 }
 
 static const ProtoPirateToolScenePlugin protopirate_sub_decode_plugin = {
-    .plugin_name = "ProtoPirate Sub Decode",
+    .plugin_name = "Sub Decode",
     .kind = ProtoPirateToolScenePluginKindSubDecode,
     .set_host_api = sub_decode_plugin_set_host_api,
     .on_enter = protopirate_scene_sub_decode_on_enter,

@@ -9,8 +9,8 @@
 #include <lib/flipper_application/plugins/composite_resolver.h>
 #include <notification/notification_messages.h>
 
-#define TAG                "ProtoPiratePsaBfHost"
-#define PSA_BF_PLUGIN_PATH APP_ASSETS_PATH("plugins/protopirate_psa_bf_plugin.fal")
+#define TAG                "PPPsaBfHost"
+#define PSA_BF_PLUGIN_PATH APP_ASSETS_PATH("plugins/pp_bf.fal")
 
 static bool host_ensure_widget(void* app) {
     return protopirate_ensure_widget((ProtoPirateApp*)app);
