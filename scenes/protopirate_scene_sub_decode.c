@@ -769,12 +769,12 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 protopirate_history_get_raw_data(ctx->history, ctx->selected_history_index);
             if(ff && protopirate_storage_save_capture_to_path(ff, PROTOPIRATE_TEMP_FILE)) {
                 protopirate_history_release_scratch(ctx->history);
-                if(app->loaded_file_path) furi_string_free(app->loaded_file_path);
-                app->loaded_file_path = furi_string_alloc_set(PROTOPIRATE_TEMP_FILE);
-                FURI_LOG_I(
-                    TAG,
-                    "Emulate from sub-decode temp file: %s",
-                    furi_string_get_cstr(app->loaded_file_path));
+                if(app->loaded_file_path) free(app->loaded_file_path);
+                size_t len = strlen(PROTOPIRATE_TEMP_FILE) + 1;
+                app->loaded_file_path = malloc(len);
+                snprintf(app->loaded_file_path, len, PROTOPIRATE_TEMP_FILE);
+
+                FURI_LOG_I(TAG, "Emulate from sub-decode temp file: %s", app->loaded_file_path);
                 app->tool_scene_nav_pending = TOOL_SCENE_NAV_NEXT;
                 app->tool_scene_nav_target = ProtoPirateSceneEmulate;
             } else {

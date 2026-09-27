@@ -366,8 +366,8 @@ ProtoPirateApp* protopirate_app_alloc() {
     app->save_filename = NULL;
 
     // File Browser path
-    app->file_path = furi_string_alloc();
-    furi_string_set(app->file_path, PROTOPIRATE_APP_FOLDER);
+    app->file_path = malloc(strlen(PROTOPIRATE_APP_FOLDER) + 1);
+    snprintf(app->file_path, strlen(PROTOPIRATE_APP_FOLDER) + 1, PROTOPIRATE_APP_FOLDER);
 
     // Load saved settings
     ProtoPirateSettings settings;
@@ -592,7 +592,7 @@ void protopirate_app_free(ProtoPirateApp* app) {
 
     if(app->loaded_file_path) {
         FURI_LOG_D(TAG, "Freeing loaded_file_path");
-        furi_string_free(app->loaded_file_path);
+        free(app->loaded_file_path);
         app->loaded_file_path = NULL;
     }
 
@@ -605,7 +605,7 @@ void protopirate_app_free(ProtoPirateApp* app) {
 
     if(app->file_path) {
         FURI_LOG_D(TAG, "Freeing file_path");
-        furi_string_free(app->file_path);
+        free(app->file_path);
         app->file_path = NULL;
     }
 
@@ -656,7 +656,10 @@ int32_t protopirate_app(char* p) {
 
     // Handle Command line PSF that may have been passed to us
     bool load_saved = (p && strlen(p));
-    if(load_saved) protopirate_app->loaded_file_path = furi_string_alloc_set(p);
+    if(load_saved) {
+        protopirate_app->loaded_file_path = malloc(strlen(p) + 1);
+        snprintf(protopirate_app->loaded_file_path, strlen(p) + 1, p);
+    }
 
 //We now jump straight to emulate scene from Browser.
 #ifdef ENABLE_EMULATE_FEATURE
