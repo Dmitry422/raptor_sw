@@ -82,6 +82,7 @@ void protopirate_scene_start_on_enter(void* context) {
 
     //Kill Config if it exists now to save memory.
     protopirate_variable_item_list_free(app);
+    protopirate_widget_free(app);
 }
 
 bool protopirate_scene_start_on_event(void* context, SceneManagerEvent event) {

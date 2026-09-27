@@ -359,8 +359,9 @@ void protopirate_scene_receiver_on_enter(void* context) {
     view_dispatcher_send_custom_event(
         app->view_dispatcher, ProtoPirateCustomEventReceiverDeferredRxStart);
 
-    //Kill Config if it exists now to save memory.
+    //Kill Variable Item Lists and Widgets if it exists now to save memory.
     protopirate_variable_item_list_free(app);
+    protopirate_widget_free(app);
 }
 
 static void protopirate_scene_receiver_handle_back(ProtoPirateApp* app) {
