@@ -17,7 +17,10 @@ void protopirate_scene_receiver_config_on_enter(void* context) {
         return;
     }
     app->config_plugin->set_host_api(&protopirate_config_scene_host_api);
-    app->config_plugin->on_enter(app);
+    //We have to grab this from the scene manager, from inside the plugin it just doesnt work!
+    bool show_lock_keyboard =
+        (scene_manager_get_scene_state(app->scene_manager, ProtoPirateSceneReceiverConfig) == 1);
+    app->config_plugin->on_enter(app, show_lock_keyboard);
 }
 
 bool protopirate_scene_receiver_config_on_event(void* context, SceneManagerEvent event) {
