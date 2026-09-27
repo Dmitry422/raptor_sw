@@ -460,7 +460,7 @@ ProtoPirateApp* protopirate_app_alloc() {
         app->car_models_count = 0;
     }
     app->selected_model = malloc(sizeof(ProtoPirateCarModel));
-    app->selected_model->name = furi_string_alloc();
+    app->selected_model->name = NULL;
     app->selected_model->preset = NULL; // important initialization
     app->selected_model->index = 0; // optional but clean
     app->variable_item_list = NULL;
@@ -548,7 +548,7 @@ void protopirate_app_free(ProtoPirateApp* app) {
     }
 
     //Free the Model Name
-    furi_string_free(app->selected_model->name);
+    if(app->selected_model->name) free(app->selected_model->name);
     app->selected_model->index = 0;
 
     //Free the preset information.
