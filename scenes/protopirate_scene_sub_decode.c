@@ -12,6 +12,16 @@ void protopirate_scene_sub_decode_on_enter(void* context) {
 }
 
 bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent event) {
+    if(event.type == SceneManagerEventTypeCustom) {
+        if(event.event == ProtoPirateCustomEventSubDecodeEmulateDelayedStart) {
+#ifdef ENABLE_EMULATE_FEATURE
+            scene_manager_next_scene(
+                ((ProtoPirateApp*)context)->scene_manager, ProtoPirateSceneEmulate);
+#endif
+            return true;
+        }
+    }
+
     return protopirate_tool_scene_on_event(context, event);
 }
 
@@ -775,8 +785,8 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 snprintf(app->loaded_file_path, len, PROTOPIRATE_TEMP_FILE);
 
                 FURI_LOG_I(TAG, "Emulate from sub-decode temp file: %s", app->loaded_file_path);
-                app->tool_scene_nav_pending = TOOL_SCENE_NAV_NEXT;
-                app->tool_scene_nav_target = ProtoPirateSceneEmulate;
+                view_dispatcher_send_custom_event(
+                    app->view_dispatcher, ProtoPirateCustomEventSubDecodeEmulateDelayedStart);
             } else {
                 FURI_LOG_E(
                     TAG, "Failed to prepare emulate capture %u", ctx->selected_history_index);
@@ -841,8 +851,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
            app->psa_bf_plugin->on_scene_event(app, ProtoPiratePsaBfContextSubDecode, event)) {
             return consumed;
         }
-
-        FURI_LOG_D(TAG, "Tick: state=%d", ctx->state);
 
         switch(ctx->state) {
         case DecodeStateOpenFile: {
