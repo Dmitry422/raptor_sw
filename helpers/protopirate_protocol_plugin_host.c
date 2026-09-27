@@ -1,8 +1,8 @@
 #include "../protopirate_app_i.h"
 #include "protopirate_txrx.h"
 #include "../protocols/protocol_items.h"
+#include "helpers/protopirate_plugins.h"
 
-#include <loader/firmware_api/firmware_api.h>
 #include <stdio.h>
 #include <string.h>
 

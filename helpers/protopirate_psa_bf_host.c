@@ -3,8 +3,8 @@
 #include "../protopirate_history.h"
 #include "../protocols/protocols_common.h"
 #include "../scenes/plugins/protopirate_psa_bf_plugin.h"
+#include "helpers/protopirate_plugins.h"
 
-#include <loader/firmware_api/firmware_api.h>
 #include <notification/notification_messages.h>
 
 #define TAG "PPPsaBfHost"

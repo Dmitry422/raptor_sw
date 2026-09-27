@@ -1,6 +1,7 @@
 // scenes/protopirate_scene_about.c
 #include "../protopirate_app_i.h"
 #include "../helpers/protopirate_settings.h"
+#include "helpers/protopirate_plugins.h"
 
 static const ProtoPirateAboutSceneHostApi protopirate_about_scene_host_api = {
     .ensure_view_about = protopirate_ensure_view_about,

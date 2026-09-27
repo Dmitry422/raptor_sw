@@ -40,7 +40,6 @@
 #include "helpers/protopirate_protocol_plugin_host.h"
 #include "helpers/protopirate_txrx.h"
 #include "helpers/protopirate_models.h"
-#include <loader/firmware_api/firmware_api.h>
 #include "helpers/protopirate_settings.h"
 
 #define CONFIG_PLUGIN_PATH     APP_ASSETS_PATH("plugins/pp_config.fal")
@@ -110,9 +109,6 @@ struct ProtoPirateApp {
     uint16_t save_history_idx;
     FlipperApplication* plugin_flipper_application;
 #ifdef ENABLE_EMULATE_FEATURE
-#define EMULATE_NAV_NONE     0U
-#define EMULATE_NAV_POP      1U
-#define EMULATE_NAV_STOP_APP 2U
     const ProtoPirateEmulatePlugin* emulate_plugin;
     uint8_t emulate_nav_pending;
 #endif
@@ -124,13 +120,6 @@ struct ProtoPirateApp {
     FlipperApplication* tool_scene_plugin_flipper_application;
     const ProtoPirateToolScenePlugin* tool_scene_plugin;
     ProtoPirateToolScenePluginKind tool_scene_plugin_kind;
-#define TOOL_SCENE_NAV_NONE            0U
-#define TOOL_SCENE_NAV_POP             1U
-#define TOOL_SCENE_NAV_NEXT            2U
-#define TOOL_SCENE_NAV_SEARCH_PREVIOUS 3U
-    uint8_t tool_scene_nav_pending;
-    uint32_t tool_scene_nav_target;
-
     ProtoPirateCarModel* selected_model;
     uint16_t car_models_count;
 };
@@ -148,29 +137,6 @@ bool protopirate_tool_scene_on_enter(void* app, ProtoPirateToolScenePluginKind k
 bool protopirate_tool_scene_on_event(void* app, SceneManagerEvent event);
 void protopirate_tool_scene_on_exit(void* app);
 void protopirate_tool_scene_plugin_release(ProtoPirateApp* app);
-
-typedef enum ProtoPirateSharedPlugin {
-    ProtoPirateSharedPluginsConfig,
-    ProtoPirateSharedPluginsSavedInfo,
-    ProtoPirateSharedPluginsAbout,
-#ifdef ENABLE_EMULATE_FEATURE
-    ProtoPirateSharedPluginsEmulate,
-#endif
-    ProtoPirateSharedPluginsToolScene,
-    ProtoPirateSharedPluginsSubDecode,
-#ifdef ENABLE_TIMING_TUNER_SCENE
-    ProtoPirateSharedPluginsTimingTuner,
-#endif
-    ProtoPirateSharedPluginsPSABruteforce,
-    ProtoPirateSharedPluginsTXRX,
-} ProtoPirateSharedPlugin;
-
-bool shared_plugin_load(
-    ProtoPirateApp* app,
-    ProtoPirateSharedPlugin plugin_type,
-    const char* txrx_path);
-void shared_plugin_unload(ProtoPirateApp* app, ProtoPirateSharedPlugin plugin_type);
-
 void protopirate_app_free(ProtoPirateApp* app);
 
 static const NotificationSequence sequence_tx = {

@@ -1,6 +1,7 @@
 // scenes/protopirate_scene_sub_decode.c
 #include "../protopirate_app_i.h"
 #ifdef ENABLE_SUB_DECODE_SCENE
+#include "helpers/protopirate_plugins.h"
 
 #define STATE_EMULATE 0
 #define STATE_BF      1
@@ -12,17 +13,11 @@ void protopirate_scene_sub_decode_on_enter(void* context) {
 }
 
 bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent event) {
-    if(event.type == SceneManagerEventTypeCustom) {
-        if(event.event == ProtoPirateCustomEventSubDecodeEmulateDelayedStart) {
-#ifdef ENABLE_EMULATE_FEATURE
-            scene_manager_next_scene(
-                ((ProtoPirateApp*)context)->scene_manager, ProtoPirateSceneEmulate);
-#endif
-            return true;
-        }
+    if(shared_plugin_handle_navigation_events(context, event)) {
+        return true;
+    } else {
+        return protopirate_tool_scene_on_event(context, event);
     }
-
-    return protopirate_tool_scene_on_event(context, event);
 }
 
 void protopirate_scene_sub_decode_on_exit(void* context) {
@@ -523,14 +518,16 @@ void protopirate_scene_sub_decode_on_enter(void* context) {
 
     if(!protopirate_ensure_receiver_view(app) || !protopirate_ensure_widget(app)) {
         notification_message(app->notifications, &sequence_error);
-        app->tool_scene_nav_pending = TOOL_SCENE_NAV_POP;
+        view_dispatcher_send_custom_event(
+            app->view_dispatcher, ProtoPirateCustomEventPluginNavigateBack);
         return;
     }
 
     if(!app->radio_initialized && !protopirate_radio_init(app)) {
         FURI_LOG_E(TAG, "Failed to initialize radio for sub decode scene");
         notification_message(app->notifications, &sequence_error);
-        app->tool_scene_nav_pending = TOOL_SCENE_NAV_POP;
+        view_dispatcher_send_custom_event(
+            app->view_dispatcher, ProtoPirateCustomEventPluginNavigateBack);
         return;
     }
 
@@ -542,7 +539,8 @@ void protopirate_scene_sub_decode_on_enter(void* context) {
     if(!app->txrx->receiver) {
         FURI_LOG_E(TAG, "Failed to allocate receiver for sub decode scene");
         notification_message(app->notifications, &sequence_error);
-        app->tool_scene_nav_pending = TOOL_SCENE_NAV_POP;
+        view_dispatcher_send_custom_event(
+            app->view_dispatcher, ProtoPirateCustomEventPluginNavigateBack);
         return;
     }
 
@@ -551,7 +549,8 @@ void protopirate_scene_sub_decode_on_enter(void* context) {
     g_decode_ctx = malloc(sizeof(SubDecodeContext));
     if(!g_decode_ctx) {
         FURI_LOG_E(TAG, "Failed to allocate decode context");
-        app->tool_scene_nav_pending = TOOL_SCENE_NAV_POP;
+        view_dispatcher_send_custom_event(
+            app->view_dispatcher, ProtoPirateCustomEventPluginNavigateBack);
         return;
     }
     memset(g_decode_ctx, 0, sizeof(SubDecodeContext));
@@ -579,7 +578,8 @@ void protopirate_scene_sub_decode_on_enter(void* context) {
             free(g_decode_ctx);
             g_decode_ctx = NULL;
             notification_message(app->notifications, &sequence_error);
-            app->tool_scene_nav_pending = TOOL_SCENE_NAV_POP;
+            view_dispatcher_send_custom_event(
+                app->view_dispatcher, ProtoPirateCustomEventPluginNavigateBack);
             return;
         }
         owns_history = true;
@@ -607,17 +607,17 @@ void protopirate_scene_sub_decode_on_enter(void* context) {
         g_decode_ctx->state = DecodeStateOpenFile;
         protopirate_scene_sub_decode_prepare_receiver_view(app);
     } else {
-        app->tool_scene_nav_pending = TOOL_SCENE_NAV_POP;
+        view_dispatcher_send_custom_event(
+            app->view_dispatcher, ProtoPirateCustomEventPluginNavigateBack);
     }
 }
 
 bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent event) {
     ProtoPirateApp* app = context;
-    bool consumed = false;
     SubDecodeContext* ctx = g_decode_ctx;
 
     if(!ctx) return false;
-
+    bool consumed = false;
     if(event.type == SceneManagerEventTypeCustom) {
         if(event.event == ProtoPirateCustomEventSubDecodeUpdate) {
             // Update receiver view with new history items (when signals are detected during decoding)
@@ -786,7 +786,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
 
                 FURI_LOG_I(TAG, "Emulate from sub-decode temp file: %s", app->loaded_file_path);
                 view_dispatcher_send_custom_event(
-                    app->view_dispatcher, ProtoPirateCustomEventSubDecodeEmulateDelayedStart);
+                    app->view_dispatcher, ProtoPirateCustomEventPluginNavigateEmulate);
             } else {
                 FURI_LOG_E(
                     TAG, "Failed to prepare emulate capture %u", ctx->selected_history_index);
@@ -836,8 +836,8 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
 
             if(!protopirate_scene_sub_decode_open_browser_for_next_file(app)) {
                 protopirate_history_reset(ctx->history);
-                app->tool_scene_nav_pending = TOOL_SCENE_NAV_SEARCH_PREVIOUS;
-                app->tool_scene_nav_target = ProtoPirateSceneStart;
+                view_dispatcher_send_custom_event(
+                    app->view_dispatcher, ProtoPirateCustomEventPluginNavigateBack);
             }
             consumed = true;
         }
@@ -1420,7 +1420,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
         }
         // If in history view, back is handled by ViewReceiverBack event
     }
-
     return consumed;
 }
 

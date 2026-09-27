@@ -2,6 +2,7 @@
 #include "protopirate_app_i.h"
 #include "plugins/protopirate_config_plugin.h"
 #include "../helpers/protopirate_protocol_plugin_host.h"
+#include "helpers/protopirate_plugins.h"
 
 static const ProtoPirateConfigSceneHostApi protopirate_config_scene_host_api = {
     .protopirate_refresh_protocol_registry = protopirate_refresh_protocol_registry,

@@ -1,8 +1,8 @@
 #include "../protopirate_app_i.h"
 #include "protopirate_psa_bf_host.h"
 #include "radio_device_loader.h"
+#include "helpers/protopirate_plugins.h"
 
-#include <loader/firmware_api/firmware_api.h>
 #include <notification/notification_messages.h>
 
 #define TAG "PPToolScene"
@@ -141,39 +141,9 @@ static bool protopirate_tool_scene_plugin_ensure_loaded(
     return true;
 }
 
-static void protopirate_tool_scene_apply_pending_nav(ProtoPirateApp* app) {
-    furi_check(app);
-
-    const uint8_t nav = app->tool_scene_nav_pending;
-    if(nav == TOOL_SCENE_NAV_NONE) {
-        return;
-    }
-
-    const uint32_t target = app->tool_scene_nav_target;
-    app->tool_scene_nav_pending = TOOL_SCENE_NAV_NONE;
-    app->tool_scene_nav_target = 0;
-
-    switch(nav) {
-    case TOOL_SCENE_NAV_POP:
-        scene_manager_previous_scene(app->scene_manager);
-        break;
-    case TOOL_SCENE_NAV_NEXT:
-        scene_manager_next_scene(app->scene_manager, target);
-        break;
-    case TOOL_SCENE_NAV_SEARCH_PREVIOUS:
-        scene_manager_search_and_switch_to_previous_scene(app->scene_manager, target);
-        break;
-    default:
-        break;
-    }
-}
-
 bool protopirate_tool_scene_on_enter(void* context, ProtoPirateToolScenePluginKind kind) {
     ProtoPirateApp* app = context;
     furi_check(app);
-
-    app->tool_scene_nav_pending = TOOL_SCENE_NAV_NONE;
-    app->tool_scene_nav_target = 0;
 
     if(!protopirate_tool_scene_plugin_ensure_loaded(app, kind) || !app->tool_scene_plugin) {
         notification_message(app->notifications, &sequence_error);
@@ -182,7 +152,6 @@ bool protopirate_tool_scene_on_enter(void* context, ProtoPirateToolScenePluginKi
     }
 
     app->tool_scene_plugin->on_enter(app);
-    protopirate_tool_scene_apply_pending_nav(app);
     return true;
 }
 
@@ -193,7 +162,6 @@ bool protopirate_tool_scene_on_event(void* context, SceneManagerEvent event) {
     }
 
     const bool consumed = app->tool_scene_plugin->on_event(app, event);
-    protopirate_tool_scene_apply_pending_nav(app);
     return consumed;
 }
 

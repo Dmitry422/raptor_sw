@@ -3,6 +3,7 @@
 #include "plugins/protopirate_saved_info_plugin.h"
 #include "../helpers/protopirate_psa_bf_host.h"
 #include "../helpers/protopirate_storage.h"
+#include "helpers/protopirate_plugins.h"
 
 static const ProtoPirateSavedInfoSceneHostApi protopirate_saved_info_scene_host_api = {
     .ensure_widget = protopirate_ensure_widget,
@@ -30,21 +31,12 @@ bool protopirate_scene_saved_info_on_event(void* context, SceneManagerEvent even
     ProtoPirateApp* app = ((ProtoPirateApp*)context);
 
     //I can't set the next scene from inside the plugin, or it causes crazy crashes.
-    if(event.type == SceneManagerEventTypeCustom) {
-        if(event.event == ProtoPirateCustomEventSavedInfoEmulateDelayedStart) {
-//Start Emulate Scene.
-#ifdef ENABLE_EMULATE_FEATURE
-            scene_manager_next_scene(app->scene_manager, ProtoPirateSceneEmulate);
-            return true;
-#endif
-        } else if(event.event == ProtoPirateCustomEventSavedInfoExit) {
-            scene_manager_previous_scene(((ProtoPirateApp*)context)->scene_manager);
-            return true;
-        }
+    if(shared_plugin_handle_navigation_events(app, event)) {
+        //Handle Saved Info event in plugin.
+        return true;
+    } else {
+        return app->saved_info_plugin->on_event(app, event);
     }
-
-    //Handle Saved Info event in plugin.
-    return app->saved_info_plugin->on_event(app, event);
 }
 
 void protopirate_scene_saved_info_on_exit(void* context) {
