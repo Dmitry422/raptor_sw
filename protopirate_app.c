@@ -167,6 +167,7 @@ ProtoPirateApp* protopirate_app_alloc() {
     app->variable_item_list = NULL;
 
     //Load the models database, get the count of the models for the list.
+#ifdef ENABLE_MODELS_DATABASE
     if(shared_plugin_load(
            (void**)&app->plugin_flipper_application,
            (const void**)&app->config_plugin,
@@ -211,9 +212,12 @@ ProtoPirateApp* protopirate_app_alloc() {
         shared_plugin_unload(
             (void**)&app->plugin_flipper_application, (const void**)&app->config_plugin);
     } else {
+#endif
         //Preset set in Config.
         protopirate_preset_init(app, preset_name, frequency, preset_data, preset_data_size);
+#ifdef ENABLE_MODELS_DATABASE
     }
+#endif
 
     // Apply hopping state from settings
     app->txrx->hopper_state = settings.hopping_enabled ? ProtoPirateHopperStateRunning :
@@ -249,6 +253,7 @@ void protopirate_app_free(ProtoPirateApp* app) {
 #endif
 
     //Get the selected Model, and get the preset to save.
+#ifdef ENABLE_MODELS_DATABASE
     if(app->selected_model && app->selected_model->index) {
         //Get Preset Index before model was selected.
         settings.car_model_index = app->selected_model->index;
@@ -289,6 +294,7 @@ void protopirate_app_free(ProtoPirateApp* app) {
     //Free the Model.
     free(app->selected_model);
     app->selected_model = NULL;
+#endif
 
     FURI_LOG_I(
         TAG,

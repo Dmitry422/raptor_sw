@@ -9,7 +9,9 @@
 #define PROTOPIRATE_CONFIG_PLUGIN_API_VERSION 2U
 
 enum ProtoPirateSettingIndex {
+#ifdef ENABLE_MODELS_DATABASE
     ProtoPirateSettingIndexCarModel,
+#endif
     ProtoPirateSettingIndexFrequency,
     ProtoPirateSettingIndexHopping,
     ProtoPirateSettingIndexModulation,
@@ -36,12 +38,14 @@ typedef struct ProtoPirateConfigSceneHostApi {
 
 typedef struct ProtoPirateConfigPlugin {
     const char* plugin_name;
+#ifdef ENABLE_MODELS_DATABASE
     bool (*car_model_get_by_index)(
         ProtoPirateCarModel* car_model,
         uint16_t index,
         uint16_t model_count,
         SubGhzSetting* app_settings);
     uint16_t (*car_model_get_count)(void);
+#endif
     void (*on_enter)(void* app, bool show_lock_keyboard);
     void (*set_host_api)(const ProtoPirateConfigSceneHostApi* host_api);
 } ProtoPirateConfigPlugin;

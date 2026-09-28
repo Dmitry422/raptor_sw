@@ -43,7 +43,11 @@
 #include "helpers/protopirate_models.h"
 #include "helpers/protopirate_settings.h"
 
+#ifdef ENABLE_MODELS_DATABASE
+#define PROTOPIRATE_KEYSTORE_DIR_NAME APP_ASSETS_PATH("keystore/encrypted")
+#else
 #define PROTOPIRATE_KEYSTORE_DIR_NAME APP_ASSETS_PATH("encrypted")
+#endif
 
 typedef struct VariableItemList VariableItemList;
 
@@ -111,8 +115,10 @@ struct ProtoPirateApp {
     FlipperApplication* tool_scene_plugin_flipper_application;
     const ProtoPirateToolScenePlugin* tool_scene_plugin;
     ProtoPirateToolScenePluginKind tool_scene_plugin_kind;
+#ifdef ENABLE_MODELS_DATABASE
     ProtoPirateCarModel* selected_model;
     uint16_t car_models_count;
+#endif
 };
 
 #ifdef ENABLE_EMULATE_FEATURE
