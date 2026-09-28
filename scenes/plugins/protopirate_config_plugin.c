@@ -131,7 +131,6 @@ static void protopirate_scene_receiver_config_set_hopping_running(VariableItem* 
                 app->scene_manager, ProtoPirateSceneReceiverConfig),
             subghz_setting_get_frequency_default_index(app->setting));
     }
-
     app->txrx->hopper_state = hopping_value[index];
 }
 
@@ -279,13 +278,13 @@ static uint8_t protopirate_scene_receiver_config_hopper_value_index(
     ProtoPirateApp* app = context;
 
     if(value == values[0]) {
-        return 0;
+        return false;
     } else {
         variable_item_set_current_value_text(
             (VariableItem*)scene_manager_get_scene_state(
                 app->scene_manager, ProtoPirateSceneReceiverConfig),
             " -----");
-        return 1;
+        return true;
     }
 }
 

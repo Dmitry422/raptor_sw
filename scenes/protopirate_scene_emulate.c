@@ -1,6 +1,5 @@
 // scenes/protopirate_scene_emulate.c
 #include "../protopirate_app_i.h"
-#include "helpers/protopirate_plugins.h"
 
 #ifdef ENABLE_EMULATE_FEATURE
 
@@ -67,13 +66,18 @@ void protopirate_emulate_context_release(ProtoPirateApp* app) {
     if(app->emulate_plugin && app->emulate_plugin->context_release) {
         app->emulate_plugin->context_release(app);
     }
-    shared_plugin_unload(app, ProtoPirateSharedPluginsEmulate);
+    shared_plugin_unload(
+        (void**)&app->plugin_flipper_application, (const void**)&app->emulate_plugin);
 }
 
 void protopirate_scene_emulate_on_enter(void* context) {
     ProtoPirateApp* app = context;
 
-    if(!shared_plugin_load(app, ProtoPirateSharedPluginsEmulate, NULL)) {
+    if(!shared_plugin_load(
+           (void**)&app->plugin_flipper_application,
+           (const void**)&app->emulate_plugin,
+           ProtoPirateSharedPluginsEmulate,
+           NULL)) {
         notification_message(app->notifications, &sequence_error);
         scene_manager_previous_scene(app->scene_manager);
         return;
@@ -88,11 +92,12 @@ bool protopirate_scene_emulate_on_event(void* context, SceneManagerEvent event) 
     ProtoPirateApp* app = context;
 
     bool consumed = false;
-    if(shared_plugin_handle_navigation_events(app, event)) {
+    //Handle Saved event in plugin.
+    if(app->emulate_plugin && app->emulate_plugin->on_event(app, event)) {
         consumed = true;
     } else {
-        if(app->emulate_plugin && app->emulate_plugin->on_event)
-            consumed = app->emulate_plugin->on_event(app, event);
+        consumed = shared_plugin_handle_navigation_events(
+            app->scene_manager, app->view_dispatcher, event);
     }
     return consumed;
 }

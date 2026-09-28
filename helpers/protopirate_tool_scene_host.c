@@ -1,7 +1,6 @@
 #include "../protopirate_app_i.h"
 #include "protopirate_psa_bf_host.h"
 #include "radio_device_loader.h"
-#include "helpers/protopirate_plugins.h"
 
 #include <notification/notification_messages.h>
 
@@ -126,14 +125,25 @@ static bool protopirate_tool_scene_plugin_ensure_loaded(
         if(app->tool_scene_plugin->release) {
             app->tool_scene_plugin->release(app);
         }
-        shared_plugin_unload(app, ProtoPirateSharedPluginsToolScene);
+
+        shared_plugin_unload(
+            (void**)&app->tool_scene_plugin_flipper_application,
+            (const void**)&app->tool_scene_plugin);
     }
 
     if(kind == ProtoPirateToolScenePluginKindSubDecode)
-        shared_plugin_load(app, ProtoPirateSharedPluginsSubDecode, NULL);
+        shared_plugin_load(
+            (void**)&app->tool_scene_plugin_flipper_application,
+            (const void**)&app->tool_scene_plugin,
+            ProtoPirateSharedPluginsSubDecode,
+            NULL);
 #ifdef ENABLE_TIMING_TUNER_SCENE
     else if(kind == ProtoPirateToolScenePluginKindTimingTuner)
-        shared_plugin_load(app, ProtoPirateSharedPluginsTimingTuner, NULL);
+        shared_plugin_load(
+            (void**)&app->tool_scene_plugin_flipper_application,
+            (const void**)&app->tool_scene_plugin,
+            ProtoPirateSharedPluginsTimingTuner,
+            NULL);
 #endif
 
     app->tool_scene_plugin_kind = kind;
@@ -178,7 +188,9 @@ void protopirate_tool_scene_on_exit(void* context) {
         }
     }
 
-    shared_plugin_unload(app, ProtoPirateSharedPluginsToolScene);
+    shared_plugin_unload(
+        (void**)&app->tool_scene_plugin_flipper_application,
+        (const void**)&app->tool_scene_plugin);
 }
 
 void protopirate_tool_scene_plugin_release(ProtoPirateApp* app) {
@@ -187,5 +199,7 @@ void protopirate_tool_scene_plugin_release(ProtoPirateApp* app) {
     if(app->tool_scene_plugin && app->tool_scene_plugin->release) {
         app->tool_scene_plugin->release(app);
     }
-    shared_plugin_unload(app, ProtoPirateSharedPluginsToolScene);
+    shared_plugin_unload(
+        (void**)&app->tool_scene_plugin_flipper_application,
+        (const void**)&app->tool_scene_plugin);
 }

@@ -5,7 +5,6 @@
 #include <stdint.h>
 
 #include <gui/scene_manager.h>
-#include <lib/flipper_application/flipper_application.h>
 #include <lib/subghz/devices/devices.h>
 
 #include "../../defines.h"

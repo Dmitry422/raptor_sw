@@ -2,8 +2,6 @@
 #include "../protopirate_app_i.h"
 
 #ifdef ENABLE_TIMING_TUNER_SCENE
-#include "helpers/protopirate_plugins.h"
-
 #ifndef PROTOPIRATE_TIMING_TUNER_PLUGIN_BUILD
 
 void protopirate_scene_timing_tuner_on_enter(void* context) {
@@ -11,10 +9,12 @@ void protopirate_scene_timing_tuner_on_enter(void* context) {
 }
 
 bool protopirate_scene_timing_tuner_on_event(void* context, SceneManagerEvent event) {
-    if(shared_plugin_handle_navigation_events(context, event)) {
+    ProtoPirateApp* app = (ProtoPirateApp*)context;
+    if(protopirate_tool_scene_on_event(context, event)) {
         return true;
     } else {
-        return protopirate_tool_scene_on_event(context, event);
+        return shared_plugin_handle_navigation_events(
+            app->scene_manager, app->view_dispatcher, event);
     }
 }
 

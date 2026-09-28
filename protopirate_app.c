@@ -164,9 +164,15 @@ ProtoPirateApp* protopirate_app_alloc() {
     app->psa_bf_plugin = NULL;
     app->tool_scene_plugin_flipper_application = NULL;
     app->tool_scene_plugin = NULL;
+    app->variable_item_list = NULL;
 
     //Load the models database, get the count of the models for the list.
-    if(shared_plugin_load(app, ProtoPirateSharedPluginsConfig, NULL) && app->config_plugin) {
+    if(shared_plugin_load(
+           (void**)&app->plugin_flipper_application,
+           (const void**)&app->config_plugin,
+           ProtoPirateSharedPluginsConfig,
+           NULL) &&
+       app->config_plugin) {
         app->car_models_count = app->config_plugin->car_model_get_count();
     } else {
         notification_message(app->notifications, &sequence_error);
@@ -176,7 +182,6 @@ ProtoPirateApp* protopirate_app_alloc() {
     app->selected_model->name = NULL;
     app->selected_model->preset = NULL; // important initialization
     app->selected_model->index = 0; // optional but clean
-    app->variable_item_list = NULL;
 
     //Grab selected car model.
     if(app->config_plugin) {
@@ -203,7 +208,8 @@ ProtoPirateApp* protopirate_app_alloc() {
         }
 
         //Kill the config plugin now.
-        shared_plugin_unload(app, ProtoPirateSharedPluginsConfig);
+        shared_plugin_unload(
+            (void**)&app->plugin_flipper_application, (const void**)&app->config_plugin);
     } else {
         //Preset set in Config.
         protopirate_preset_init(app, preset_name, frequency, preset_data, preset_data_size);
@@ -358,14 +364,13 @@ void protopirate_app_free(ProtoPirateApp* app) {
 }
 
 int32_t protopirate_app(char* p) {
-    //Stop charging while running the app.
-    furi_hal_power_suppress_charge_enter();
-
     ProtoPirateApp* protopirate_app = protopirate_app_alloc();
     if(!protopirate_app) {
-        furi_hal_power_suppress_charge_exit();
         return -1;
     }
+
+    //Stop charging while running the app.
+    furi_hal_power_suppress_charge_enter();
 
     // Handle Command line PSF that may have been passed to us
     bool load_saved = (p && strlen(p));
@@ -396,6 +401,8 @@ int32_t protopirate_app(char* p) {
 
     //Free the App and allow chargin again.
     protopirate_app_free(protopirate_app);
+
+    //Restore Charging State
     furi_hal_power_suppress_charge_exit();
     return 0;
 }

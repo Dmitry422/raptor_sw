@@ -1,7 +1,6 @@
 // scenes/protopirate_scene_sub_decode.c
 #include "../protopirate_app_i.h"
 #ifdef ENABLE_SUB_DECODE_SCENE
-#include "helpers/protopirate_plugins.h"
 
 #define STATE_EMULATE 0
 #define STATE_BF      1
@@ -13,10 +12,12 @@ void protopirate_scene_sub_decode_on_enter(void* context) {
 }
 
 bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent event) {
-    if(shared_plugin_handle_navigation_events(context, event)) {
+    ProtoPirateApp* app = (ProtoPirateApp*)context;
+    if(protopirate_tool_scene_on_event(context, event)) {
         return true;
     } else {
-        return protopirate_tool_scene_on_event(context, event);
+        return shared_plugin_handle_navigation_events(
+            app->scene_manager, app->view_dispatcher, event);
     }
 }
 

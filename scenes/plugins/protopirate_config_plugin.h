@@ -2,6 +2,7 @@
 #include "../../protopirate_app_i.h"
 #include "helpers/protopirate_models.h"
 #include <lib/flipper_application/flipper_application.h>
+
 #include "helpers/variable_item_list.h"
 
 #define PROTOPIRATE_CONFIG_PLUGIN_APP_ID      "pp_config"
