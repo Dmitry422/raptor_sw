@@ -70,10 +70,26 @@ static const ProtoPirateToolSceneHostApi* g_tool_scene_host_api = NULL;
         app, frequency, frequency_size, modulation, modulation_size)
 #define radio_device_loader_is_external(radio_device) \
     g_tool_scene_host_api->radio_device_is_external(radio_device)
+
 #define protopirate_view_receiver_add_data_statusbar(   \
-    receiver, frequency, modulation, history, external) \
+    receiver,                                           \
+    frequency,                                          \
+    frequency_size,                                     \
+    modulation,                                         \
+    modulation_size,                                    \
+    history,                                            \
+    history_size,                                       \
+    external)                                           \
     g_tool_scene_host_api->receiver_add_data_statusbar( \
-        receiver, frequency, modulation, history, external)
+        receiver,                                       \
+        frequency,                                      \
+        frequency_size,                                 \
+        modulation,                                     \
+        modulation_size,                                \
+        history,                                        \
+        history_size,                                   \
+        external)
+
 #define protopirate_view_receiver_get_idx_menu(receiver) \
     g_tool_scene_host_api->receiver_get_idx_menu(receiver)
 #define protopirate_view_receiver_set_idx_menu(receiver, idx) \
@@ -227,12 +243,11 @@ static void protopirate_scene_sub_decode_update_receiver_statusbar(
     char modulation_str[8] = {0};
     char history_stat_str[16] = {0};
 
-    protopirate_get_frequency_modulation_str(
-        app, frequency_str, sizeof(frequency_str), modulation_str, sizeof(modulation_str));
+    protopirate_get_frequency_modulation_str(app, frequency_str, 16, modulation_str, 8);
     if(ctx && ctx->frequency > 0U) {
         snprintf(
             frequency_str,
-            sizeof(frequency_str),
+            20,
             "%03lu.%02lu",
             (unsigned long)((ctx->frequency / 1000000UL) % 1000UL),
             (unsigned long)((ctx->frequency / 10000UL) % 100UL));
@@ -240,13 +255,20 @@ static void protopirate_scene_sub_decode_update_receiver_statusbar(
 
     const uint16_t signal_count =
         (ctx && ctx->history) ? protopirate_history_get_item(ctx->history) : 0U;
-    snprintf(
-        history_stat_str, sizeof(history_stat_str), "%u/%u", signal_count, PROTOPIRATE_HISTORY_MAX);
+    snprintf(history_stat_str, 16, "%u/%u", signal_count, PROTOPIRATE_HISTORY_MAX);
 
     bool is_external =
         app->txrx->radio_device ? radio_device_loader_is_external(app->txrx->radio_device) : false;
+
     protopirate_view_receiver_add_data_statusbar(
-        app->protopirate_receiver, frequency_str, modulation_str, history_stat_str, is_external);
+        app->protopirate_receiver,
+        frequency_str,
+        16,
+        modulation_str,
+        8,
+        history_stat_str,
+        16,
+        is_external);
 }
 
 static void protopirate_scene_sub_decode_update_receiver_progress(
