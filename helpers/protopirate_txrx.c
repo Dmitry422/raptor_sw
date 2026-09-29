@@ -10,6 +10,16 @@
 
 #define HOPPER_PAUSE_THRESHOLD -60.0f
 
+bool subghz_txrx_radio_device_is_frequency_valid(ProtoPirateTxRx* instance, uint32_t frequency) {
+    furi_assert(instance);
+    return subghz_devices_is_frequency_valid(instance->radio_device, frequency);
+}
+
+const char* subghz_txrx_radio_device_get_name(ProtoPirateTxRx* instance) {
+    furi_assert(instance);
+    return subghz_devices_get_name(instance->radio_device);
+}
+
 void protopirate_rx_stack_teardown_for_registry_switch(ProtoPirateApp* app) {
     if(app->txrx->txrx_state == ProtoPirateTxRxStateRx) {
         protopirate_rx_end(app);

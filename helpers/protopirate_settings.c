@@ -116,7 +116,7 @@ void protopirate_settings_load(ProtoPirateSettings* settings) {
 
         uint32_t sound_temp = 0;
         if(!flipper_format_read_uint32(ff, "Sound", &sound_temp, 1)) {
-            check_saved_temp = 0;
+            sound_temp = 0;
         }
         settings->sound = (sound_temp == 1);
 
@@ -146,7 +146,7 @@ void protopirate_settings_load(ProtoPirateSettings* settings) {
 #endif
         FURI_LOG_I(
             TAG,
-            "Settings loaded: freq=%lu, preset=%u, auto_save=%d, hopping=%d, emulate=%d, check_saved=%d, sound = %d",
+            "Settings loaded: freq=%lu, preset=%u, auto_save=%d, hopping=%lu, emulate=%d, check_saved=%d, sound = %d",
             settings->frequency,
             settings->preset_index,
             settings->auto_save,
@@ -247,7 +247,7 @@ void protopirate_settings_save(ProtoPirateSettings* settings) {
 
         FURI_LOG_I(
             TAG,
-            "Settings saved: freq=%lu, preset=%u, auto_save=%d, hopping=%d, emulate=%d, check_saved=%d, sound=%d",
+            "Settings saved: freq=%lu, preset=%u, auto_save=%d, hopping=%lu, emulate=%d, check_saved=%d, sound=%d",
             settings->frequency,
             settings->preset_index,
             settings->auto_save,

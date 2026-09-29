@@ -1,14 +1,8 @@
-#include "protopirate_config_plugin.h"
+#include "../../protopirate_app_i.h"
 #include "../../helpers/protopirate_models.h"
+#include <gui/view_dispatcher.h>
 
-static const ProtoPirateConfigSceneHostApi* g_config_scene_host_api = NULL;
-
-#define protopirate_preset_init(app, preset_name, frequency, preset_data, preset_data_size) \
-    g_config_scene_host_api->protopirate_preset_init(                                       \
-        app, preset_name, frequency, preset_data, preset_data_size)
-
-#define protopirate_refresh_protocol_registry(app, ensure_receiver_ready) \
-    g_config_scene_host_api->protopirate_refresh_protocol_registry(app, ensure_receiver_ready)
+static const ProtoPirateSharedPluginHostApi* g_config_scene_host_api = NULL;
 
 #define ON_OFF_COUNT 2
 const char* const on_off_text[ON_OFF_COUNT] = {
@@ -111,14 +105,14 @@ static void protopirate_scene_receiver_config_set_preset(VariableItem* item) {
     uint8_t index = variable_item_get_current_value_index(item);
     variable_item_set_current_value_text(
         item, subghz_setting_get_preset_name(app->setting, index));
-    protopirate_preset_init(
+    g_config_scene_host_api->preset_init(
         app,
         subghz_setting_get_preset_name(app->setting, index),
         app->txrx->preset->frequency,
         subghz_setting_get_preset_data(app->setting, index),
         subghz_setting_get_preset_data_size(app->setting, index));
 
-    if(!protopirate_refresh_protocol_registry(app, false)) {
+    if(!g_config_scene_host_api->refresh_protocol_registry(app, false)) {
         notification_message(app->notifications, &sequence_error);
     }
 }
@@ -231,7 +225,7 @@ static void protopirate_scene_receiver_config_set_model(VariableItem* item) {
             }
         }
 
-        protopirate_preset_init(
+        g_config_scene_host_api->preset_init(
             app,
             furi_string_get_cstr(app->selected_model->preset->name),
             app->selected_model->preset->frequency,
@@ -247,7 +241,7 @@ static void protopirate_scene_receiver_config_set_model(VariableItem* item) {
         protopirate_scene_receiver_config_set_frequency(freq_menu);
         protopirate_scene_receiver_config_set_hopping_running(hop_menu);
 
-        protopirate_preset_init(
+        g_config_scene_host_api->preset_init(
             app,
             subghz_setting_get_preset_name(app->setting, app->selected_model->last_preset_index),
             app->txrx->preset->frequency,
@@ -261,7 +255,7 @@ static void protopirate_scene_receiver_config_set_model(VariableItem* item) {
     }
 
     //Refresh the protocol registry now that we have a new Modulation Type.
-    if(!protopirate_refresh_protocol_registry(app, false)) {
+    if(!g_config_scene_host_api->refresh_protocol_registry(app, false)) {
         notification_message(app->notifications, &sequence_error);
     }
 
@@ -536,12 +530,12 @@ static void plugin_on_enter(void* context, bool show_lock_keyboard) {
     view_dispatcher_switch_to_view(app->view_dispatcher, ProtoPirateViewVariableItemList);
 }
 
-void config_plugin_set_host_api(const ProtoPirateConfigSceneHostApi* host_api) {
+void config_plugin_set_host_api(const ProtoPirateSharedPluginHostApi* host_api) {
     g_config_scene_host_api = host_api;
 }
 
 static const ProtoPirateConfigPlugin protopirate_config_plugin = {
-    .plugin_name = "Config",
+    .plugin_name = "",
 #ifdef ENABLE_MODELS_DATABASE
     .car_model_get_by_index = car_model_get_by_index,
     .car_model_get_count = car_model_get_count,

@@ -13,16 +13,16 @@
 static const char* protopirate_get_registry_plugin_path(ProtoPirateProtocolRegistryRoute route) {
     switch(route) {
     case ProtoPirateProtocolRegistryRouteAMVag:
-        return APP_ASSETS_PATH("plugins/pp_am_vag.fal");
+        return "am_vag.fal";
     case ProtoPirateProtocolRegistryRouteFMDefault:
-        return APP_ASSETS_PATH("plugins/pp_fm.fal");
+        return "fm_def.fal";
     case ProtoPirateProtocolRegistryRouteFMF4:
-        return APP_ASSETS_PATH("plugins/pp_fm_f4.fal");
+        return "fm_f4.fal";
     case ProtoPirateProtocolRegistryRouteFMHonda1:
-        return APP_ASSETS_PATH("plugins/pp_fm_honda1.fal");
+        return "fm_honda1.fal";
     case ProtoPirateProtocolRegistryRouteAMDefault:
     default:
-        return APP_ASSETS_PATH("plugins/pp_am.fal");
+        return "am_def.fal";
     }
 }
 
@@ -35,8 +35,7 @@ static bool protopirate_build_tx_protocol_plugin_path(
         return false;
     }
 
-    int written =
-        snprintf(plugin_path, plugin_path_size, APP_ASSETS_PATH("plugins/pp_tx_%s.fal"), tx_key);
+    int written = snprintf(plugin_path, plugin_path_size, "tx_%s.fal", tx_key);
     return (written > 0) && ((size_t)written < plugin_path_size);
 }
 #endif

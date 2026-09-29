@@ -5,7 +5,7 @@
 #include <furi_hal.h>
 #include "helpers/protopirate_settings.h"
 #include "helpers/protopirate_storage.h"
-#include "helpers/protopirate_psa_bf_host.h"
+#include "helpers/protopirate_bruteforce_host.h"
 #include "helpers/protopirate_views.h"
 #include "helpers/protopirate_radio.h"
 #include "helpers/protopirate_plugins.h"
@@ -73,7 +73,6 @@ ProtoPirateApp* protopirate_app_alloc() {
     view_dispatcher_add_view(
         app->view_dispatcher, ProtoPirateViewSubmenu, submenu_get_view(app->submenu));
 
-    app->save_protocol = NULL;
     app->save_history_idx = 0;
     app->emulate_disabled_for_loaded = false;
     app->save_filename = NULL;
@@ -149,7 +148,7 @@ ProtoPirateApp* protopirate_app_alloc() {
 
     FURI_LOG_I(
         TAG,
-        "Settings: freq=%lu, preset=%s, auto_save=%d, hopping=%u",
+        "Settings: freq=%lu, preset=%s, auto_save=%d, hopping=%lu",
         frequency,
         preset_name,
         settings.auto_save,
@@ -157,24 +156,20 @@ ProtoPirateApp* protopirate_app_alloc() {
 
     // Null out plugin pointers just in case.
     app->plugin_flipper_application = NULL;
-    app->config_plugin = NULL;
-    app->saved_info_plugin = NULL;
-    app->about_plugin = NULL;
-    app->plugin_flipper_application = NULL;
-    app->psa_bf_plugin = NULL;
-    app->tool_scene_plugin_flipper_application = NULL;
-    app->tool_scene_plugin = NULL;
+    app->shared_plugin = NULL;
+    app->bruteforce_plugin = NULL;
     app->variable_item_list = NULL;
 
     //Load the models database, get the count of the models for the list.
 #ifdef ENABLE_MODELS_DATABASE
     if(shared_plugin_load(
            (void**)&app->plugin_flipper_application,
-           (const void**)&app->config_plugin,
+           &app->shared_plugin,
            ProtoPirateSharedPluginsConfig,
            NULL) &&
-       app->config_plugin) {
-        app->car_models_count = app->config_plugin->car_model_get_count();
+       app->shared_plugin) {
+        app->car_models_count =
+            ((ProtoPirateConfigPlugin*)app->shared_plugin)->car_model_get_count();
     } else {
         notification_message(app->notifications, &sequence_error);
         app->car_models_count = 0;
@@ -185,11 +180,15 @@ ProtoPirateApp* protopirate_app_alloc() {
     app->selected_model->index = 0; // optional but clean
 
     //Grab selected car model.
-    if(app->config_plugin) {
+    if(app->shared_plugin) {
         if(settings.car_model_index) {
             //Get the selected car model.
-            app->config_plugin->car_model_get_by_index(
-                app->selected_model, settings.car_model_index, app->car_models_count, app->setting);
+            ((ProtoPirateConfigPlugin*)app->shared_plugin)
+                ->car_model_get_by_index(
+                    app->selected_model,
+                    settings.car_model_index,
+                    app->car_models_count,
+                    app->setting);
             app->selected_model->last_preset_index = settings.preset_index;
 
             //Preset for the selected model...
@@ -201,8 +200,9 @@ ProtoPirateApp* protopirate_app_alloc() {
                 app->selected_model->preset->data_size);
         } else {
             //This will return Select a model or No Models in Database
-            app->config_plugin->car_model_get_by_index(
-                app->selected_model, 0, app->car_models_count, app->setting);
+            ((ProtoPirateConfigPlugin*)app->shared_plugin)
+                ->car_model_get_by_index(
+                    app->selected_model, 0, app->car_models_count, app->setting);
 
             //Preset set in Config.
             protopirate_preset_init(app, preset_name, frequency, preset_data, preset_data_size);
@@ -210,7 +210,7 @@ ProtoPirateApp* protopirate_app_alloc() {
 
         //Kill the config plugin now.
         shared_plugin_unload(
-            (void**)&app->plugin_flipper_application, (const void**)&app->config_plugin);
+            (void**)&app->plugin_flipper_application, (const void**)&app->shared_plugin);
     } else {
 #endif
         //Preset set in Config.
@@ -305,7 +305,7 @@ void protopirate_app_free(ProtoPirateApp* app) {
 
     FURI_LOG_I(
         TAG,
-        "Saving settings: freq=%lu, preset=%u, auto_save=%d, hopping=%u, emulate=%d",
+        "Saving settings: freq=%lu, preset=%u, auto_save=%d, hopping=%lu, emulate=%d",
         settings.frequency,
         settings.preset_index,
         settings.auto_save,
@@ -313,11 +313,6 @@ void protopirate_app_free(ProtoPirateApp* app) {
         settings.emulate_feature_enabled);
 
     protopirate_settings_save(&settings);
-
-    protopirate_tool_scene_plugin_release(app);
-#ifdef ENABLE_EMULATE_FEATURE
-    protopirate_emulate_context_release(app);
-#endif
 
     FURI_LOG_D(TAG, "Calling radio_deinit");
     protopirate_radio_deinit(app);
@@ -341,12 +336,7 @@ void protopirate_app_free(ProtoPirateApp* app) {
         app->file_path = NULL;
     }
 
-    if(app->save_protocol) {
-        furi_string_free(app->save_protocol);
-        app->save_protocol = NULL;
-    }
-
-    protopirate_psa_bf_context_release(app);
+    protopirate_bruteforce_context_release(app);
 
     FURI_LOG_D(TAG, "Freeing subghz_setting");
     subghz_setting_free(app->setting);
