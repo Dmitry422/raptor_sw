@@ -240,10 +240,15 @@ void protopirate_rx_stack_resume_after_tx(ProtoPirateApp* app) {
 bool protopirate_hopper_update(ProtoPirateApp* app) {
     furi_check(app);
 
+    if(app->key_found) {
+        app->key_found = false;
+        return false;
+    }
+
     switch(app->txrx->hopper_state) {
     case ProtoPirateHopperStateOFF:
-    case ProtoPirateHopperStatePause:
         return false;
+    case ProtoPirateHopperStatePause:
     case ProtoPirateHopperStateRSSITimeOut:
         if(app->txrx->hopper_timeout != 0) {
             app->txrx->hopper_timeout--;
@@ -254,11 +259,11 @@ bool protopirate_hopper_update(ProtoPirateApp* app) {
         break;
     }
     float rssi = -127.0f;
-    if(app->txrx->hopper_state != ProtoPirateHopperStateRSSITimeOut) {
+    if(app->txrx->hopper_state == ProtoPirateHopperStateRunning) {
         rssi = subghz_devices_get_rssi(app->txrx->radio_device);
 
-        if(rssi > -90.0f) {
-            app->txrx->hopper_timeout = 10;
+        if(rssi > -80.0f) {
+            app->txrx->hopper_timeout = 20;
             app->txrx->hopper_state = ProtoPirateHopperStateRSSITimeOut;
             return false;
         }
