@@ -262,7 +262,7 @@ bool protopirate_hopper_update(ProtoPirateApp* app) {
     if(app->txrx->hopper_state == ProtoPirateHopperStateRunning) {
         rssi = subghz_devices_get_rssi(app->txrx->radio_device);
 
-        if(rssi > -80.0f) {
+        if(rssi > -75.0f) {
             app->txrx->hopper_timeout = 20;
             app->txrx->hopper_state = ProtoPirateHopperStateRSSITimeOut;
             return false;

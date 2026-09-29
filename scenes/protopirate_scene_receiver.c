@@ -468,11 +468,7 @@ bool protopirate_scene_receiver_on_event(void* context, SceneManagerEvent event)
                    protopirate_scene_receiver_bind_rx_stack(app)) {
                     protopirate_rx(app, app->txrx->preset->frequency);
                 }
-                static uint8_t hopper_statusbar_tick = 0;
-                if(++hopper_statusbar_tick >= 8) {
-                    hopper_statusbar_tick = 0;
-                    protopirate_scene_receiver_update_statusbar(app);
-                }
+                protopirate_scene_receiver_update_statusbar(app);
             }
         }
 
