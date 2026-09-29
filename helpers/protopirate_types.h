@@ -31,22 +31,19 @@ typedef enum {
     ProtoPirateCustomEventReceiverInfoUpdate,
     ProtoPirateCustomEventReceiverInfoEmulate,
     ProtoPirateCustomEventSavedInfoDelete,
-    ProtoPirateCustomEventSavedInfoExit,
     //Bruteforcing PSA & Renault
     ProtoPirateCustomEventBruteforceStart,
     ProtoPirateCustomEventBruteforceComplete,
     // Emulator
-    ProtoPirateCustomEventSavedInfoEmulate,
-    ProtoPirateCustomEventSavedInfoEmulateDelayedStart,
     ProtoPirateCustomEventEmulateTransmit,
     ProtoPirateCustomEventEmulateStop,
     ProtoPirateCustomEventEmulateExit,
+    ProtoPirateCustomEventSavedInfoEmulate,
     // Sub decode
     ProtoPirateCustomEventSubDecodeUpdate,
     ProtoPirateCustomEventSubDecodeSave,
     ProtoPirateCustomEventSubDecodeEmulate,
     ProtoPirateCustomEventSubDecodeSaveConfirm,
-    ProtoPirateCustomEventSubDecodeEmulateDelayedStart,
     // File Browser
     ProtoPirateCustomEventSavedFileSelected,
     // Need saving confirmation
@@ -54,6 +51,11 @@ typedef enum {
     ProtoPirateCustomEventSceneExit,
     // About scene
     ProtoPirateCustomEventAboutToggleEmulate,
+    //Plugin Scenes
+    ProtoPirateCustomEventPluginNavigateBack,
+    ProtoPirateCustomEventPluginNavigateEmulate,
+    ProtoPirateCustomEventPluginNavigateConfig,
+    ProtoPirateCustomEventPluginNavigateStopApp,
 } ProtoPirateCustomEvent;
 
 typedef enum {

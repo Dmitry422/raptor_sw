@@ -24,8 +24,7 @@ static void protopirate_scene_receiver_update_statusbar(void* context) {
     char modulation_str[8] = {0};
     char history_stat_str[16] = {0};
 
-    protopirate_get_frequency_modulation_str(
-        app, frequency_str, sizeof(frequency_str), modulation_str, sizeof(modulation_str));
+    protopirate_get_frequency_modulation_str(app, frequency_str, 16, modulation_str, 8);
 
     bool is_external = false;
     if(app->radio_initialized && app->txrx->radio_device) {
@@ -33,14 +32,20 @@ static void protopirate_scene_receiver_update_statusbar(void* context) {
     }
 
     if(app->txrx->history) {
-        protopirate_history_format_status_text(
-            app->txrx->history, history_stat_str, sizeof(history_stat_str));
+        protopirate_history_format_status_text(app->txrx->history, history_stat_str, 20);
     } else {
-        snprintf(history_stat_str, sizeof(history_stat_str), "0/%u", PROTOPIRATE_HISTORY_MAX);
+        snprintf(history_stat_str, 16, "0/%u", PROTOPIRATE_HISTORY_MAX);
     }
 
     protopirate_view_receiver_add_data_statusbar(
-        app->protopirate_receiver, frequency_str, modulation_str, history_stat_str, is_external);
+        app->protopirate_receiver,
+        frequency_str,
+        16,
+        modulation_str,
+        8,
+        history_stat_str,
+        16,
+        is_external);
 }
 
 static void protopirate_scene_receiver_callback(
