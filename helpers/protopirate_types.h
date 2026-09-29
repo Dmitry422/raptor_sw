@@ -21,6 +21,7 @@ typedef enum {
     ProtoPirateCustomEventViewReceiverBack,
     ProtoPirateCustomEventViewReceiverDeleteItem,
     ProtoPirateCustomEventViewReceiverUnlock,
+    ProtoPirateCustomEventViewReceiverHopperUpdate,
     // Custom events for scenes
     ProtoPirateCustomEventSceneReceiverUpdate,
     ProtoPirateCustomEventReceiverDeferredRxStart,

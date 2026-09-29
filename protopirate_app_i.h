@@ -89,6 +89,8 @@ struct ProtoPirateApp {
     SubGhzSetting* setting;
     ProtoPirateLock lock;
     char* loaded_file_path;
+    /*****************/
+    // Byte 1
     uint8_t deferred_storage_in_progress : 1;
     uint8_t auto_save                    : 1;
     uint8_t check_saved                  : 1;
@@ -97,6 +99,10 @@ struct ProtoPirateApp {
     uint8_t radio_initialized            : 1;
     uint8_t emulate_disabled_for_loaded  : 1;
     uint8_t emulate_feature_enabled      : 1;
+    // Byte 2
+    uint8_t key_found                    : 1;
+    uint8_t reserved                     : 7;
+    /*****************/
     uint32_t start_tx_time;
     uint8_t tx_power;
     char* save_filename;

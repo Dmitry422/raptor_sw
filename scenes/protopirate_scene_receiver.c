@@ -68,6 +68,7 @@ static void protopirate_scene_receiver_callback(
         protopirate_history_add_to_history(app->txrx->history, decoder_base, app->txrx->preset);
 
     if(added) {
+        app->key_found = true;
         if(!(app->sound))
             notification_message(app->notifications, &sequence_semi_success);
         else
@@ -113,7 +114,7 @@ static void protopirate_scene_receiver_callback(
 
     if(app->txrx->hopper_state == ProtoPirateHopperStateRunning) {
         app->txrx->hopper_state = ProtoPirateHopperStatePause;
-        app->txrx->hopper_timeout = 10;
+        app->txrx->hopper_timeout = 50;
     }
 }
 
@@ -461,18 +462,19 @@ bool protopirate_scene_receiver_on_event(void* context, SceneManagerEvent event)
             protopirate_view_receiver_set_lock(app->protopirate_receiver, app->lock);
             consumed = true;
             break;
-        }
-    } else if(event.type == SceneManagerEventTypeTick) {
-        if(app->txrx->hopper_state != ProtoPirateHopperStateOFF) {
-            if(protopirate_hopper_update(app) && protopirate_scene_receiver_bind_rx_stack(app)) {
-                protopirate_rx(app, app->txrx->preset->frequency);
-            }
-            static uint8_t hopper_statusbar_tick = 0;
-            if(++hopper_statusbar_tick >= 8) {
-                hopper_statusbar_tick = 0;
+        case ProtoPirateCustomEventViewReceiverHopperUpdate:
+            if(app->txrx->hopper_state != ProtoPirateHopperStateOFF) {
+                if(protopirate_hopper_update(app) &&
+                   protopirate_scene_receiver_bind_rx_stack(app)) {
+                    protopirate_rx(app, app->txrx->preset->frequency);
+                }
                 protopirate_scene_receiver_update_statusbar(app);
             }
         }
+
+    } else if(event.type == SceneManagerEventTypeTick) {
+        view_dispatcher_send_custom_event(
+            app->view_dispatcher, ProtoPirateCustomEventViewReceiverHopperUpdate);
 
         if(app->radio_initialized && app->txrx->txrx_state == ProtoPirateTxRxStateRx &&
            app->txrx->radio_device) {
