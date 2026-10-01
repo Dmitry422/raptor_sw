@@ -131,25 +131,26 @@ static bool protopirate_tool_scene_plugin_ensure_loaded(
             (const void**)&app->tool_scene_plugin);
     }
 
-    bool loaded = false;
-    if(kind == ProtoPirateToolScenePluginKindSubDecode)
-        loaded = shared_plugin_load(
-            (void**)&app->tool_scene_plugin_flipper_application,
-            (const void**)&app->tool_scene_plugin,
-            ProtoPirateSharedPluginsSubDecode,
-            NULL);
+    ProtoPirateSharedPlugin plugin_type;
+    if(kind == ProtoPirateToolScenePluginKindSubDecode) {
+        plugin_type = ProtoPirateSharedPluginsSubDecode;
 #ifdef ENABLE_TIMING_TUNER_SCENE
-    else if(kind == ProtoPirateToolScenePluginKindTimingTuner)
-        loaded = shared_plugin_load(
-            (void**)&app->tool_scene_plugin_flipper_application,
-            (const void**)&app->tool_scene_plugin,
-            ProtoPirateSharedPluginsTimingTuner,
-            NULL);
+    } else if(kind == ProtoPirateToolScenePluginKindTimingTuner) {
+        plugin_type = ProtoPirateSharedPluginsTimingTuner;
 #endif
+    } else {
+        FURI_LOG_E(TAG, "Tool scene kind %d is not built into this firmware", kind);
+        return false;
+    }
 
-    // The .fal load fails on a missing/stale asset or an exhausted heap; without this the
-    // set_host_api call below dereferences NULL.
-    if(!loaded || !app->tool_scene_plugin || !app->tool_scene_plugin->set_host_api) {
+    // tool_scene_plugin stays NULL when the .fal is missing, stale or too big for the free
+    // heap; set_host_api below would then fault.
+    if(!shared_plugin_load(
+           (void**)&app->tool_scene_plugin_flipper_application,
+           (const void**)&app->tool_scene_plugin,
+           plugin_type,
+           NULL) ||
+       !app->tool_scene_plugin || !app->tool_scene_plugin->set_host_api) {
         FURI_LOG_E(TAG, "Failed to load tool scene plugin for kind %d", kind);
         shared_plugin_unload(
             (void**)&app->tool_scene_plugin_flipper_application,
