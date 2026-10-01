@@ -336,9 +336,11 @@ bool plugin_protopirate_scene_saved_info_on_event(void* context, SceneManagerEve
         }
         if(event.event == ProtoPirateCustomEventBruteforceStart ||
            event.event == ProtoPirateCustomEventBruteforceComplete) {
-            if(g_saved_info_scene_host_api->psa_bf_plugin_ensure_loaded(app) &&
-               app->psa_bf_plugin &&
-               app->psa_bf_plugin->on_scene_event(app, ProtoPiratePsaBfContextSavedInfo, event)) {
+            if(!g_saved_info_scene_host_api->psa_bf_plugin_ensure_loaded(app)) {
+                FURI_LOG_E(TAG, "Failed to load PSA bruteforce plugin");
+            } else if(!app->psa_bf_plugin->on_scene_event(
+                          app, ProtoPiratePsaBfContextSavedInfo, event)) {
+                FURI_LOG_E(TAG, "Bruteforce did not start for the saved capture");
             }
             if(event.event == ProtoPirateCustomEventBruteforceComplete)
                 plugin_protopirate_scene_saved_info_on_enter(app);

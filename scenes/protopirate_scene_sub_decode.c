@@ -202,7 +202,9 @@ static void protopirate_scene_sub_decode_update_receiver_statusbar(
     snprintf(history_stat_str, 16, "%u/%u", signal_count, PROTOPIRATE_HISTORY_MAX);
 
     bool is_external =
-        app->txrx->radio_device ? g_tool_scene_host_api->radio_device_is_external(app->txrx->radio_device) : false;
+        app->txrx->radio_device ?
+            g_tool_scene_host_api->radio_device_is_external(app->txrx->radio_device) :
+            false;
 
     g_tool_scene_host_api->receiver_add_data_statusbar(
         app->protopirate_receiver,
@@ -231,7 +233,8 @@ static void protopirate_scene_sub_decode_update_receiver_progress(
         }
     }
     if(should_update) {
-        g_tool_scene_host_api->receiver_set_sub_decode_progress(app->protopirate_receiver, progress);
+        g_tool_scene_host_api->receiver_set_sub_decode_progress(
+            app->protopirate_receiver, progress);
     }
 }
 
@@ -485,7 +488,8 @@ static void protopirate_scene_sub_decode_text_input_callback(void* context) {
 void protopirate_scene_sub_decode_on_enter(void* context) {
     ProtoPirateApp* app = context;
 
-    if(!g_tool_scene_host_api->ensure_receiver_view(app) || !g_tool_scene_host_api->ensure_widget(app)) {
+    if(!g_tool_scene_host_api->ensure_receiver_view(app) ||
+       !g_tool_scene_host_api->ensure_widget(app)) {
         notification_message(app->notifications, &sequence_error);
         view_dispatcher_send_custom_event(
             app->view_dispatcher, ProtoPirateCustomEventPluginNavigateBack);
@@ -607,8 +611,8 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             consumed = true;
         } else if(event.event == ProtoPirateCustomEventSubDecodeSave) {
             // Save the file (same as receiver_info)
-            FlipperFormat* ff =
-                g_tool_scene_host_api->history_get_raw_data(ctx->history, ctx->selected_history_index);
+            FlipperFormat* ff = g_tool_scene_host_api->history_get_raw_data(
+                ctx->history, ctx->selected_history_index);
 
             if(ff) {
                 FuriString* file_name_str = furi_string_alloc();
@@ -698,8 +702,8 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             consumed = true;
         } else if(event.event == ProtoPirateCustomEventSubDecodeSaveConfirm) {
             // User confirmed the filename in text input
-            FlipperFormat* ff =
-                g_tool_scene_host_api->history_get_raw_data(app->txrx->history, app->save_history_idx);
+            FlipperFormat* ff = g_tool_scene_host_api->history_get_raw_data(
+                app->txrx->history, app->save_history_idx);
             if(ff) {
                 // Build full path: folder/filename.psf
                 FuriString* save_path = furi_string_alloc_printf(
@@ -708,7 +712,8 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                     app->save_filename,
                     PROTOPIRATE_APP_EXTENSION);
 
-                if(g_tool_scene_host_api->storage_save_capture_to_path(ff, furi_string_get_cstr(save_path))) {
+                if(g_tool_scene_host_api->storage_save_capture_to_path(
+                       ff, furi_string_get_cstr(save_path))) {
                     notification_message(app->notifications, &sequence_success);
                     FURI_LOG_I(TAG, "Saved to: %s", furi_string_get_cstr(save_path));
                 } else {
@@ -740,9 +745,10 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
         else if(
             event.event == ProtoPirateCustomEventSubDecodeEmulate &&
             app->emulate_feature_enabled && !app->emulate_disabled_for_loaded) {
-            FlipperFormat* ff =
-                g_tool_scene_host_api->history_get_raw_data(ctx->history, ctx->selected_history_index);
-            if(ff && g_tool_scene_host_api->storage_save_capture_to_path(ff, PROTOPIRATE_TEMP_FILE)) {
+            FlipperFormat* ff = g_tool_scene_host_api->history_get_raw_data(
+                ctx->history, ctx->selected_history_index);
+            if(ff &&
+               g_tool_scene_host_api->storage_save_capture_to_path(ff, PROTOPIRATE_TEMP_FILE)) {
                 g_tool_scene_host_api->history_release_scratch(ctx->history);
                 if(app->loaded_file_path) free(app->loaded_file_path);
                 size_t len = strlen(PROTOPIRATE_TEMP_FILE) + 1;
@@ -762,20 +768,29 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
 #endif
         else if(event.event == ProtoPirateCustomEventBruteforceStart) {
             app->txrx->idx_menu_chosen = ctx->selected_history_index;
-            // The signal-info probe already unloaded the plugin, so this is a real SD load that
-            // can fail; unreported, the BF button would simply do nothing on every press.
+            // The host answers needs_bruteforce itself, so the plugin is not resident here and
+            // this is a real SD load; unreported, BF would simply do nothing on every press.
             if(!g_tool_scene_host_api->psa_bf_plugin_ensure_loaded(app)) {
                 FURI_LOG_E(TAG, "Failed to load PSA bruteforce plugin");
                 furi_string_set(ctx->result, "Bruteforce plugin\nmissing or stale.");
                 furi_string_set(ctx->error_info, "BF plugin load failed");
                 ctx->failure_kind = SubDecodeFailurePluginMissing;
                 ctx->state = DecodeStateShowFailure;
+                // Leave signal-info, or the failure screen's OK button is gated off.
+                ctx->showing_signal_info = false;
                 notification_message(app->notifications, &sequence_error);
-            } else if(app->psa_bf_plugin->on_scene_event(
+            } else if(!app->psa_bf_plugin->on_scene_event(
                           app, ProtoPiratePsaBfContextSubDecode, event)) {
-                if(app->psa_bf_plugin->is_running(app)) {
-                    view_dispatcher_switch_to_view(app->view_dispatcher, ProtoPirateViewWidget);
-                }
+                // The host probe only needs a Key field; the bruteforce itself needs more.
+                FURI_LOG_E(TAG, "Bruteforce did not start");
+                furi_string_set(ctx->result, "Capture is missing\nfields to bruteforce.");
+                furi_string_set(ctx->error_info, "BF start failed");
+                ctx->failure_kind = SubDecodeFailurePluginMissing;
+                ctx->state = DecodeStateShowFailure;
+                ctx->showing_signal_info = false;
+                notification_message(app->notifications, &sequence_error);
+            } else if(app->psa_bf_plugin->is_running(app)) {
+                view_dispatcher_switch_to_view(app->view_dispatcher, ProtoPirateViewWidget);
             }
             consumed = true;
             return consumed;
@@ -872,7 +887,8 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 }
 
                 FURI_LOG_D(TAG, "ReadHeader: Reading protocol");
-                if(!flipper_format_read_string(ctx->ff, g_tool_scene_host_api->ff_protocol, ctx->protocol_name)) {
+                if(!flipper_format_read_string(
+                       ctx->ff, g_tool_scene_host_api->ff_protocol, ctx->protocol_name)) {
                     furi_string_set(ctx->result, "Missing Protocol");
                     furi_string_set(ctx->error_info, "No protocol field");
                     break;
@@ -882,7 +898,8 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 flipper_format_rewind(ctx->ff);
                 flipper_format_read_header(ctx->ff, temp_str, &version);
                 ctx->frequency = 433920000;
-                flipper_format_read_uint32(ctx->ff, g_tool_scene_host_api->ff_frequency, &ctx->frequency, 1);
+                flipper_format_read_uint32(
+                    ctx->ff, g_tool_scene_host_api->ff_frequency, &ctx->frequency, 1);
 
                 FURI_LOG_I(
                     TAG,
@@ -974,18 +991,21 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                     break;
                 }
 
-                if(!flipper_format_read_uint32(fff_data_file, g_tool_scene_host_api->ff_frequency, &ctx->frequency, 1)) {
+                if(!flipper_format_read_uint32(
+                       fff_data_file, g_tool_scene_host_api->ff_frequency, &ctx->frequency, 1)) {
                     FURI_LOG_E(TAG, "Missing Frequency");
                     break;
                 }
 
-                if(!flipper_format_read_string(fff_data_file, g_tool_scene_host_api->ff_preset, temp_str)) {
+                if(!flipper_format_read_string(
+                       fff_data_file, g_tool_scene_host_api->ff_preset, temp_str)) {
                     FURI_LOG_E(TAG, "Missing Preset");
                     break;
                 }
 
                 const char* preset_name_long = furi_string_get_cstr(temp_str);
-                const char* preset_name_short = g_tool_scene_host_api->get_short_preset_name(preset_name_long);
+                const char* preset_name_short =
+                    g_tool_scene_host_api->get_short_preset_name(preset_name_long);
                 uint8_t* preset_data = NULL;
                 size_t preset_data_size = 0U;
 
@@ -1167,7 +1187,10 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
         case DecodeStateDecodingRaw: {
             if(!ctx->raw_reader) {
                 FURI_LOG_E(TAG, "DecodingRaw: No raw reader");
+                furi_string_set(ctx->result, "Decode stopped\nunexpectedly.");
+                furi_string_set(ctx->error_info, "Raw reader missing");
                 ctx->state = DecodeStateShowFailure;
+                notification_message(app->notifications, &sequence_error);
                 break;
             }
 
@@ -1257,7 +1280,8 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                     protopirate_scene_sub_decode_receiver_callback,
                     app);
 
-                g_tool_scene_host_api->receiver_set_sub_decode_progress(app->protopirate_receiver, 100);
+                g_tool_scene_host_api->receiver_set_sub_decode_progress(
+                    app->protopirate_receiver, 100);
                 protopirate_scene_sub_decode_update_receiver_statusbar(app, ctx);
 
                 // Switch to receiver view
@@ -1307,14 +1331,16 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 app->emulate_disabled_for_loaded = true;
 
                 // Store reference to history item's flipper format for saving
-                FlipperFormat* ff =
-                    g_tool_scene_host_api->history_get_raw_data(ctx->history, ctx->selected_history_index);
+                FlipperFormat* ff = g_tool_scene_host_api->history_get_raw_data(
+                    ctx->history, ctx->selected_history_index);
                 if(ff) {
                     FuriString* proto_str = furi_string_alloc();
                     flipper_format_rewind(ff);
-                    bool have_proto = flipper_format_read_string(ff, g_tool_scene_host_api->ff_protocol, proto_str);
-                    bool offers_bf = have_proto && g_tool_scene_host_api->catalog_offers_bruteforce(
-                                                       furi_string_get_cstr(proto_str));
+                    bool have_proto = flipper_format_read_string(
+                        ff, g_tool_scene_host_api->ff_protocol, proto_str);
+                    bool offers_bf = have_proto &&
+                                     g_tool_scene_host_api->catalog_offers_bruteforce(
+                                         furi_string_get_cstr(proto_str));
 
                     if(have_proto) {
                         const char* protocol_name = furi_string_get_cstr(proto_str);

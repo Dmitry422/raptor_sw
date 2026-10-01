@@ -12,7 +12,7 @@
 #include "../../views/protopirate_receiver.h"
 
 #define PROTOPIRATE_TOOL_SCENE_PLUGIN_APP_ID      "protopirate_tool_scene_plugins"
-#define PROTOPIRATE_TOOL_SCENE_PLUGIN_API_VERSION 1U
+#define PROTOPIRATE_TOOL_SCENE_PLUGIN_API_VERSION 2U
 
 typedef enum {
     ProtoPirateToolScenePluginKindSubDecode = 0,
@@ -79,13 +79,13 @@ typedef struct {
 
     bool (*psa_bf_plugin_ensure_loaded)(void* app);
     void (*psa_bf_plugin_unload_if_idle)(void* app);
-    bool (*catalog_needs_bruteforce)(FlipperFormat* ff);
     void (*psa_bf_context_release)(void* app);
 
     // Host-resident helpers, so a tool-scene plugin need not compile a second copy of
     // protocol_items.c, protocols_common.c, protopirate_history.c or protopirate_storage.c.
     bool (*catalog_can_tx)(const char* protocol_name);
     bool (*catalog_offers_bruteforce)(const char* protocol_name);
+    bool (*catalog_needs_bruteforce)(FlipperFormat* ff);
 
     const char* ff_protocol;
     const char* ff_preset;

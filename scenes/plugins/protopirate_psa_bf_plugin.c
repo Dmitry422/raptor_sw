@@ -334,23 +334,33 @@ static void plugin_on_scene_enter(void* app, ProtoPiratePsaBfContext ctx) {
 }
 
 static bool start_bruteforce(void* app) {
-    if(g_bf_thread) return false;
+    if(g_bf_thread) {
+        FURI_LOG_E(TAG, "Bruteforce already running");
+        return false;
+    }
 
     if(g_active_ctx == ProtoPiratePsaBfContextSavedInfo) {
         g_storage = furi_record_open(RECORD_STORAGE);
         g_ff = flipper_format_file_alloc(g_storage);
 
         if(!flipper_format_file_open_existing(g_ff, g_host_api->get_loaded_file_path(app))) {
+            FURI_LOG_E(TAG, "Cannot open saved capture for bruteforce");
             furi_record_close(RECORD_STORAGE);
             g_storage = NULL;
             return false;
         }
     } else {
         g_ff = g_host_api->get_history_flipper_format(app);
-        if(!g_ff) return false;
+        if(!g_ff) {
+            FURI_LOG_E(TAG, "No capture data for bruteforce");
+            return false;
+        }
     }
 
-    if(!plugin_needs_bruteforce(g_ff)) return false;
+    if(!plugin_needs_bruteforce(g_ff)) {
+        FURI_LOG_E(TAG, "Capture does not need a bruteforce");
+        return false;
+    }
     if(psa_bf_needs_bruteforce(g_ff)) {
         PsaBfState* state = malloc(sizeof(PsaBfState));
         if(!state) {
@@ -358,6 +368,8 @@ static bool start_bruteforce(void* app) {
             return false;
         }
         if(!psa_bf_state_from_flipper_format(state, g_ff)) {
+            // The host probe only checks that Key exists; this also needs Key_2.
+            FURI_LOG_E(TAG, "PSA capture is missing fields needed to bruteforce");
             free(state);
             g_host_api->notification_error(app);
             return false;
@@ -374,6 +386,7 @@ static bool start_bruteforce(void* app) {
             return false;
         }
         if(!hitag2_bf_state_from_flipper_format(state, g_ff)) {
+            FURI_LOG_E(TAG, "Hitag2 capture is missing fields needed to bruteforce");
             free(state);
             g_host_api->notification_error(app);
             return false;
@@ -385,10 +398,12 @@ static bool start_bruteforce(void* app) {
         g_bf_thread =
             furi_thread_alloc_ex("Hitag2Bf", 2048, hitag2_brute_force_thread_entry, state);
     } else {
+        FURI_LOG_E(TAG, "No bruteforce kind matches this capture");
         return false;
     }
 
     if(!g_bf_thread) {
+        FURI_LOG_E(TAG, "Failed to allocate bruteforce thread");
         bf_free_states();
         g_host_api->notification_error(app);
 
@@ -449,10 +464,7 @@ static bool
 
     if(ctx == ProtoPiratePsaBfContextSubDecode) {
         if(event.event == ProtoPirateCustomEventBruteforceStart) {
-            if(start_bruteforce(app)) {
-                return true;
-            }
-            return true;
+            return start_bruteforce(app);
         }
         if(event.event == ProtoPirateCustomEventBruteforceComplete) {
             if(bf_status() == PSA_BF_STATUS_FOUND) {

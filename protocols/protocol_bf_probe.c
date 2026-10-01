@@ -6,15 +6,15 @@
 
 #include <furi.h>
 
-#define HITAG2_BF_KEY_FIELD   "Hitag2 Key"
-#define HITAG2_BF_RECOVERED   "Recovered"
-#define HITAG2_BF_KEY_SIZE    6U
+#define HITAG2_BF_KEY_FIELD "Hitag2 Key"
+#define HITAG2_BF_RECOVERED "Recovered"
+#define HITAG2_BF_KEY_SIZE  6U
 
 static bool bf_probe_protocol_is(FlipperFormat* ff, const char* name) {
     FuriString* value = furi_string_alloc();
     flipper_format_rewind(ff);
-    const bool match =
-        flipper_format_read_string(ff, FF_PROTOCOL, value) && furi_string_cmp_str(value, name) == 0;
+    const bool match = flipper_format_read_string(ff, FF_PROTOCOL, value) &&
+                       furi_string_cmp_str(value, name) == 0;
     furi_string_free(value);
     return match;
 }
