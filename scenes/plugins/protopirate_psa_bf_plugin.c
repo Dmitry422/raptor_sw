@@ -1,4 +1,5 @@
 #include "protopirate_psa_bf_plugin.h"
+#include "../../protocols/protocol_bf_probe.h"
 
 #include "../../defines.h"
 #include "../../protocols/psa_bf_core.h"
@@ -97,26 +98,7 @@ static void bf_free_states(void) {
 }
 
 static bool psa_bf_needs_bruteforce(FlipperFormat* ff) {
-    if(!ff) return false;
-    FuriString* s = furi_string_alloc();
-
-    flipper_format_rewind(ff);
-    if(!flipper_format_read_string(ff, FF_PROTOCOL, s) || furi_string_cmp_str(s, "PSA") != 0) {
-        furi_string_free(s);
-        return false;
-    }
-
-    flipper_format_rewind(ff);
-    bool has_key = flipper_format_read_string(ff, FF_KEY, s);
-    if(!has_key) {
-        furi_string_free(s);
-        return false;
-    }
-    uint32_t serial = 0;
-    flipper_format_rewind(ff);
-    bool has_serial = flipper_format_read_uint32(ff, FF_SERIAL, &serial, 1);
-    furi_string_free(s);
-    return !has_serial;
+    return protopirate_bf_probe_psa_needs_bruteforce(ff);
 }
 
 static void show_bf_progress(void* app) {
@@ -332,7 +314,7 @@ static void bf_cancel_thread(void) {
 }
 
 static bool plugin_needs_bruteforce(FlipperFormat* ff) {
-    return psa_bf_needs_bruteforce(ff) || hitag2_bf_needs_bruteforce(ff);
+    return protopirate_bf_probe_needs_bruteforce(ff);
 }
 
 static bool plugin_is_running(void* app) {
@@ -385,7 +367,7 @@ static bool start_bruteforce(void* app) {
         g_bf_state = state;
         g_bf_kind = ProtoPirateBfKindPsa;
         g_bf_thread = furi_thread_alloc_ex("PsaBf", 2048, psa_brute_force_thread_entry, state);
-    } else if(hitag2_bf_needs_bruteforce(g_ff)) {
+    } else if(protopirate_bf_probe_hitag2_needs_bruteforce(g_ff)) {
         Hitag2BfState* state = malloc(sizeof(Hitag2BfState));
         if(!state) {
             g_host_api->notification_error(app);

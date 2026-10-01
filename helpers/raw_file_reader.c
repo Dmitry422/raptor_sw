@@ -7,7 +7,8 @@
 #include <toolbox/stream/stream.h>
 #include <lib/flipper_format/flipper_format.h>
 #include <lib/flipper_format/flipper_format_i.h>
-#include "../protocols/protocols_common.h"
+// Field name inlined: protocols_common.c is host-resident and not linked into this plugin.
+#define RAW_READER_PROTOCOL_KEY "Protocol"
 
 #define TAG "RawFileReader"
 
@@ -279,7 +280,7 @@ bool raw_file_reader_open(RawFileReader* reader, const char* file_path) {
             break;
         }
 
-        if(!flipper_format_read_string(reader->ff, FF_PROTOCOL, temp_str)) {
+        if(!flipper_format_read_string(reader->ff, RAW_READER_PROTOCOL_KEY, temp_str)) {
             FURI_LOG_E(TAG, "Missing Protocol field");
             break;
         }

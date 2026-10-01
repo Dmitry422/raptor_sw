@@ -106,9 +106,37 @@ static const ProtoPirateToolSceneHostApi* g_tool_scene_host_api = NULL;
     g_tool_scene_host_api->receiver_sync_menu_from_history(receiver, history)
 #define protopirate_psa_bf_plugin_ensure_loaded(app) \
     g_tool_scene_host_api->psa_bf_plugin_ensure_loaded(app)
-#define protopirate_psa_bf_plugin_unload_if_idle(app) \
-    g_tool_scene_host_api->psa_bf_plugin_unload_if_idle(app)
 #define protopirate_psa_bf_context_release(app) g_tool_scene_host_api->psa_bf_context_release(app)
+#define protopirate_catalog_needs_bruteforce(ff) g_tool_scene_host_api->catalog_needs_bruteforce(ff)
+#define protopirate_protocol_catalog_can_tx(name) g_tool_scene_host_api->catalog_can_tx(name)
+#define protopirate_protocol_catalog_offers_bruteforce(name) \
+    g_tool_scene_host_api->catalog_offers_bruteforce(name)
+#define pp_get_short_preset_name(name) g_tool_scene_host_api->get_short_preset_name(name)
+#define pp_preset_name_is_custom_marker(name) \
+    g_tool_scene_host_api->preset_name_is_custom_marker(name)
+#define protopirate_history_release_scratch(history) \
+    g_tool_scene_host_api->history_release_scratch(history)
+#define protopirate_history_alloc() g_tool_scene_host_api->history_alloc()
+#define protopirate_history_free(history) g_tool_scene_host_api->history_free(history)
+#define protopirate_history_reset(history) g_tool_scene_host_api->history_reset(history)
+#define protopirate_history_get_item(history) g_tool_scene_host_api->history_get_item(history)
+#define protopirate_history_add_to_history_at(history, context, preset, ts) \
+    g_tool_scene_host_api->history_add_to_history_at(history, context, preset, ts)
+#define protopirate_history_get_raw_data(history, idx) \
+    g_tool_scene_host_api->history_get_raw_data(history, idx)
+#define protopirate_history_get_text_item_detail(history, idx, output, environment) \
+    g_tool_scene_host_api->history_get_text_item_detail(history, idx, output, environment)
+#define protopirate_storage_save_capture_to_path(ff, path) \
+    g_tool_scene_host_api->storage_save_capture_to_path(ff, path)
+#define protopirate_storage_get_next_filename(name, out, dont_add_zero) \
+    g_tool_scene_host_api->storage_get_next_filename(name, out, dont_add_zero)
+#define protopirate_storage_get_capture_display_protocol(ff, name) \
+    g_tool_scene_host_api->storage_get_capture_display_protocol(ff, name)
+
+// protocols_common.c is host-resident too, so these come across as values, not symbols.
+#define PP_FF_PROTOCOL  g_tool_scene_host_api->ff_protocol
+#define PP_FF_PRESET    g_tool_scene_host_api->ff_preset
+#define PP_FF_FREQUENCY g_tool_scene_host_api->ff_frequency
 
 #define SUBGHZ_APP_FOLDER EXT_PATH("subghz")
 
@@ -929,7 +957,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 }
 
                 FURI_LOG_D(TAG, "ReadHeader: Reading protocol");
-                if(!flipper_format_read_string(ctx->ff, FF_PROTOCOL, ctx->protocol_name)) {
+                if(!flipper_format_read_string(ctx->ff, PP_FF_PROTOCOL, ctx->protocol_name)) {
                     furi_string_set(ctx->result, "Missing Protocol");
                     furi_string_set(ctx->error_info, "No protocol field");
                     break;
@@ -939,7 +967,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 flipper_format_rewind(ctx->ff);
                 flipper_format_read_header(ctx->ff, temp_str, &version);
                 ctx->frequency = 433920000;
-                flipper_format_read_uint32(ctx->ff, FF_FREQUENCY, &ctx->frequency, 1);
+                flipper_format_read_uint32(ctx->ff, PP_FF_FREQUENCY, &ctx->frequency, 1);
 
                 FURI_LOG_I(
                     TAG,
@@ -1031,12 +1059,12 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                     break;
                 }
 
-                if(!flipper_format_read_uint32(fff_data_file, FF_FREQUENCY, &ctx->frequency, 1)) {
+                if(!flipper_format_read_uint32(fff_data_file, PP_FF_FREQUENCY, &ctx->frequency, 1)) {
                     FURI_LOG_E(TAG, "Missing Frequency");
                     break;
                 }
 
-                if(!flipper_format_read_string(fff_data_file, FF_PRESET, temp_str)) {
+                if(!flipper_format_read_string(fff_data_file, PP_FF_PRESET, temp_str)) {
                     FURI_LOG_E(TAG, "Missing Preset");
                     break;
                 }
@@ -1369,7 +1397,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 if(ff) {
                     FuriString* proto_str = furi_string_alloc();
                     flipper_format_rewind(ff);
-                    bool have_proto = flipper_format_read_string(ff, FF_PROTOCOL, proto_str);
+                    bool have_proto = flipper_format_read_string(ff, PP_FF_PROTOCOL, proto_str);
                     bool offers_bf = have_proto && protopirate_protocol_catalog_offers_bruteforce(
                                                        furi_string_get_cstr(proto_str));
 
@@ -1383,14 +1411,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                     furi_string_free(proto_str);
                     if(offers_bf) {
                         app->txrx->idx_menu_chosen = ctx->selected_history_index;
-                        bool needs_bf = false;
-                        if(protopirate_psa_bf_plugin_ensure_loaded(app)) {
-                            needs_bf = app->psa_bf_plugin->needs_bruteforce(ff);
-                        } else {
-                            // Otherwise BF is hidden, which looks identical to "protocol has none".
-                            FURI_LOG_E(TAG, "PSA bruteforce plugin unavailable, hiding BF");
-                        }
-                        if(needs_bf) {
+                        if(protopirate_catalog_needs_bruteforce(ff)) {
                             scene_manager_set_scene_state(
                                 app->scene_manager, ProtoPirateSceneSubDecode, STATE_BF);
 
@@ -1401,9 +1422,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                                 protopirate_scene_sub_decode_widget_callback,
                                 app);
                             left_button_bf = true;
-                        } else {
-                            // Keep it mapped only while the button that needs it is on screen.
-                            protopirate_psa_bf_plugin_unload_if_idle(app);
                         }
                     }
                 }

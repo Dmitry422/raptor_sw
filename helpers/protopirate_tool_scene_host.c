@@ -1,6 +1,10 @@
 #include "../protopirate_app_i.h"
 #include "protopirate_psa_bf_host.h"
 #include "radio_device_loader.h"
+#include "../protocols/protocol_bf_probe.h"
+#include "../protocols/protocol_items.h"
+#include "../protocols/protocols_common.h"
+#include "protopirate_storage.h"
 
 #include <notification/notification_messages.h>
 
@@ -109,7 +113,29 @@ static const ProtoPirateToolSceneHostApi protopirate_tool_scene_host_api = {
     .receiver_sync_menu_from_history = protopirate_view_receiver_sync_menu_from_history,
     .psa_bf_plugin_ensure_loaded = host_psa_bf_plugin_ensure_loaded,
     .psa_bf_plugin_unload_if_idle = host_psa_bf_plugin_unload_if_idle,
+    .catalog_needs_bruteforce = protopirate_bf_probe_needs_bruteforce,
     .psa_bf_context_release = host_psa_bf_context_release,
+
+    .catalog_can_tx = protopirate_protocol_catalog_can_tx,
+    .catalog_offers_bruteforce = protopirate_protocol_catalog_offers_bruteforce,
+
+    .ff_protocol = FF_PROTOCOL,
+    .ff_preset = FF_PRESET,
+    .ff_frequency = FF_FREQUENCY,
+    .get_short_preset_name = pp_get_short_preset_name,
+    .preset_name_is_custom_marker = pp_preset_name_is_custom_marker,
+
+    .history_alloc = protopirate_history_alloc,
+    .history_free = protopirate_history_free,
+    .history_reset = protopirate_history_reset,
+    .history_get_item = protopirate_history_get_item,
+    .history_add_to_history_at = protopirate_history_add_to_history_at,
+    .history_get_raw_data = protopirate_history_get_raw_data,
+    .history_get_text_item_detail = protopirate_history_get_text_item_detail,
+
+    .storage_save_capture_to_path = protopirate_storage_save_capture_to_path,
+    .storage_get_next_filename = protopirate_storage_get_next_filename,
+    .storage_get_capture_display_protocol = protopirate_storage_get_capture_display_protocol,
 };
 
 static bool protopirate_tool_scene_plugin_ensure_loaded(
