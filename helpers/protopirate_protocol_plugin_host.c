@@ -92,11 +92,16 @@ static bool protopirate_ensure_protocol_registry_plugin(
     }
 
     const char* plugin_path = protopirate_get_registry_plugin_path(route);
-    shared_plugin_load(
-        (void**)&app->txrx->protocol_plugin_flipper_application,
-        (const void**)&app->txrx->protocol_plugin,
-        ProtoPirateSharedPluginsTXRX,
-        plugin_path);
+    if(!shared_plugin_load(
+           (void**)&app->txrx->protocol_plugin_flipper_application,
+           (const void**)&app->txrx->protocol_plugin,
+           ProtoPirateSharedPluginsTXRX,
+           plugin_path) ||
+       !app->txrx->protocol_plugin) {
+        FURI_LOG_E(TAG, "Failed to load RX protocol plugin %s", plugin_path ? plugin_path : "?");
+        protopirate_unload_protocol_plugin(app);
+        return false;
+    }
 
     if(app->txrx->protocol_plugin->kind != ProtoPirateProtocolPluginKindRx) {
         FURI_LOG_E(TAG, "Protocol plugin kind mismatch for RX route");
@@ -162,11 +167,17 @@ static bool protopirate_ensure_tx_protocol_plugin(
         protopirate_unload_protocol_plugin(app);
     }
 
-    shared_plugin_load(
-        (void**)&app->txrx->protocol_plugin_flipper_application,
-        (const void**)&app->txrx->protocol_plugin,
-        ProtoPirateSharedPluginsTXRX,
-        plugin_path);
+    if(!shared_plugin_load(
+           (void**)&app->txrx->protocol_plugin_flipper_application,
+           (const void**)&app->txrx->protocol_plugin,
+           ProtoPirateSharedPluginsTXRX,
+           plugin_path) ||
+       !app->txrx->protocol_plugin || !app->txrx->protocol_plugin->registry ||
+       app->txrx->protocol_plugin->registry->size == 0U) {
+        FURI_LOG_E(TAG, "Failed to load TX protocol plugin %s", plugin_path);
+        protopirate_unload_protocol_plugin(app);
+        return false;
+    }
 
     const SubGhzProtocol* tx_protocol = app->txrx->protocol_plugin->registry->items[0];
     if(!tx_protocol || !tx_protocol->encoder || !tx_protocol->encoder->alloc ||

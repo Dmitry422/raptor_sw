@@ -107,7 +107,7 @@ static const ProtoPirateToolSceneHostApi* g_tool_scene_host_api = NULL;
 #define protopirate_psa_bf_plugin_ensure_loaded(app) \
     g_tool_scene_host_api->psa_bf_plugin_ensure_loaded(app)
 #define protopirate_psa_bf_plugin_unload_if_idle(app) \
-    g_tool_scene_host_api->psa_bf_plugin_ensure_loaded(app)
+    g_tool_scene_host_api->psa_bf_plugin_unload_if_idle(app)
 #define protopirate_psa_bf_context_release(app) g_tool_scene_host_api->psa_bf_context_release(app)
 
 #define SUBGHZ_APP_FOLDER EXT_PATH("subghz")
@@ -330,9 +330,10 @@ static void protopirate_sub_decode_receiver_callback(
            ctx->history, decoder_base, app->txrx->preset, virtual_tick)) {
         ctx->signal_count++;
         FURI_LOG_I(TAG, "Added signal %u to history", ctx->signal_count);
-
-        view_dispatcher_send_custom_event(
-            app->view_dispatcher, ProtoPirateCustomEventSubDecodeUpdate);
+        // No custom event from here: this runs inside subghz_receiver_decode() on the
+        // view_dispatcher thread, so posting to its 16-deep event queue would self-deadlock
+        // once a batch decodes more signals than the queue holds. The DecodeStateDecodingRaw
+        // tick refreshes the statusbar after every batch anyway.
     }
 }
 

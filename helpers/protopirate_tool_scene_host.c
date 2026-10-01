@@ -131,20 +131,31 @@ static bool protopirate_tool_scene_plugin_ensure_loaded(
             (const void**)&app->tool_scene_plugin);
     }
 
+    bool loaded = false;
     if(kind == ProtoPirateToolScenePluginKindSubDecode)
-        shared_plugin_load(
+        loaded = shared_plugin_load(
             (void**)&app->tool_scene_plugin_flipper_application,
             (const void**)&app->tool_scene_plugin,
             ProtoPirateSharedPluginsSubDecode,
             NULL);
 #ifdef ENABLE_TIMING_TUNER_SCENE
     else if(kind == ProtoPirateToolScenePluginKindTimingTuner)
-        shared_plugin_load(
+        loaded = shared_plugin_load(
             (void**)&app->tool_scene_plugin_flipper_application,
             (const void**)&app->tool_scene_plugin,
             ProtoPirateSharedPluginsTimingTuner,
             NULL);
 #endif
+
+    // The .fal load fails on a missing/stale asset or an exhausted heap; without this the
+    // set_host_api call below dereferences NULL.
+    if(!loaded || !app->tool_scene_plugin || !app->tool_scene_plugin->set_host_api) {
+        FURI_LOG_E(TAG, "Failed to load tool scene plugin for kind %d", kind);
+        shared_plugin_unload(
+            (void**)&app->tool_scene_plugin_flipper_application,
+            (const void**)&app->tool_scene_plugin);
+        return false;
+    }
 
     app->tool_scene_plugin_kind = kind;
     app->tool_scene_plugin->set_host_api(&protopirate_tool_scene_host_api);
