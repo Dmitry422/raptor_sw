@@ -121,6 +121,23 @@ static bool protopirate_tool_scene_plugin_ensure_loaded(
         return true;
     }
 
+    // Resolve the kind before unloading: an unsupported one must not cost us the plugin
+    // that is already resident.
+    ProtoPirateSharedPlugin plugin_type;
+    switch(kind) {
+    case ProtoPirateToolScenePluginKindSubDecode:
+        plugin_type = ProtoPirateSharedPluginsSubDecode;
+        break;
+#ifdef ENABLE_TIMING_TUNER_SCENE
+    case ProtoPirateToolScenePluginKindTimingTuner:
+        plugin_type = ProtoPirateSharedPluginsTimingTuner;
+        break;
+#endif
+    default:
+        FURI_LOG_E(TAG, "Unknown tool scene kind %d", kind);
+        return false;
+    }
+
     if(app->tool_scene_plugin) {
         if(app->tool_scene_plugin->release) {
             app->tool_scene_plugin->release(app);
@@ -131,34 +148,17 @@ static bool protopirate_tool_scene_plugin_ensure_loaded(
             (const void**)&app->tool_scene_plugin);
     }
 
-    ProtoPirateSharedPlugin plugin_type;
-    if(kind == ProtoPirateToolScenePluginKindSubDecode) {
-        plugin_type = ProtoPirateSharedPluginsSubDecode;
-#ifdef ENABLE_TIMING_TUNER_SCENE
-    } else if(kind == ProtoPirateToolScenePluginKindTimingTuner) {
-        plugin_type = ProtoPirateSharedPluginsTimingTuner;
-#endif
-    } else {
-        FURI_LOG_E(TAG, "Tool scene kind %d is not built into this firmware", kind);
-        return false;
-    }
-
-    // tool_scene_plugin stays NULL when the .fal is missing, stale or too big for the free
-    // heap; set_host_api below would then fault.
+    // A missing, stale or too-large-for-the-heap .fal leaves tool_scene_plugin NULL, which
+    // set_host_api below would fault on.
     if(!shared_plugin_load(
            (void**)&app->tool_scene_plugin_flipper_application,
            (const void**)&app->tool_scene_plugin,
            plugin_type,
-           NULL) ||
-       !app->tool_scene_plugin || !app->tool_scene_plugin->set_host_api) {
+           NULL)) {
         FURI_LOG_E(TAG, "Failed to load tool scene plugin for kind %d", kind);
-        shared_plugin_unload(
-            (void**)&app->tool_scene_plugin_flipper_application,
-            (const void**)&app->tool_scene_plugin);
         return false;
     }
 
-    app->tool_scene_plugin_kind = kind;
     app->tool_scene_plugin->set_host_api(&protopirate_tool_scene_host_api);
     return true;
 }
@@ -167,7 +167,7 @@ bool protopirate_tool_scene_on_enter(void* context, ProtoPirateToolScenePluginKi
     ProtoPirateApp* app = context;
     furi_check(app);
 
-    if(!protopirate_tool_scene_plugin_ensure_loaded(app, kind) || !app->tool_scene_plugin) {
+    if(!protopirate_tool_scene_plugin_ensure_loaded(app, kind)) {
         notification_message(app->notifications, &sequence_error);
         scene_manager_previous_scene(app->scene_manager);
         return false;

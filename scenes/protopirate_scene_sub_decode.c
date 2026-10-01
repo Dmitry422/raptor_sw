@@ -432,15 +432,6 @@ static void
         title = "RAW file needed";
         snprintf(body, sizeof(body), "Needs a SubGhz\nRAW capture\nfile.");
         break;
-    case SubDecodeFailurePluginMissing:
-        title = "Plugin missing";
-        snprintf(
-            body,
-            sizeof(body),
-            "%s",
-            (ctx && !furi_string_empty(ctx->result)) ? furi_string_get_cstr(ctx->result) :
-                                                       "Reinstall app assets.");
-        break;
     case SubDecodeFailureNoMatch:
         title = "No match";
         if(ctx && ctx->frequency > 0U) {
@@ -454,6 +445,9 @@ static void
             snprintf(body, sizeof(body), "No ProtoPirate\nprotocol detected\nin this signal.");
         }
         break;
+    case SubDecodeFailurePluginMissing:
+        title = "Plugin missing";
+        __attribute__((fallthrough)); // the body is ctx->result, same as the generic case
     default:
         snprintf(
             body,
@@ -652,13 +646,9 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
     bool consumed = false;
     if(event.type == SceneManagerEventTypeCustom) {
         if(event.event == ProtoPirateCustomEventSubDecodeUpdate) {
-            // Update receiver view with new history items (when signals are detected during decoding)
-            if(ctx->state == DecodeStateDecodingRaw) {
-                protopirate_scene_sub_decode_update_receiver_statusbar(app, ctx);
-                consumed = true;
-            } else if(
-                ctx->state == DecodeStateShowHistory ||
-                (ctx->state == DecodeStateDone && !ctx->showing_signal_info)) {
+            // Every sender sets a non-decoding state first; the decode tick repaints itself.
+            if(ctx->state == DecodeStateShowHistory ||
+               (ctx->state == DecodeStateDone && !ctx->showing_signal_info)) {
                 // Rebuild history view
                 uint16_t history_count = protopirate_history_get_item(ctx->history);
                 if(history_count > 0) {
@@ -831,7 +821,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             app->txrx->idx_menu_chosen = ctx->selected_history_index;
             // The signal-info probe already unloaded the plugin, so this is a real SD load that
             // can fail; unreported, the BF button would simply do nothing on every press.
-            if(!protopirate_psa_bf_plugin_ensure_loaded(app) || !app->psa_bf_plugin) {
+            if(!protopirate_psa_bf_plugin_ensure_loaded(app)) {
                 FURI_LOG_E(TAG, "Failed to load PSA bruteforce plugin");
                 furi_string_set(ctx->result, "Bruteforce plugin\nmissing or stale.");
                 furi_string_set(ctx->error_info, "BF plugin load failed");
@@ -1130,6 +1120,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                     FURI_LOG_E(TAG, "Failed to rebuild receiver for preset %s", preset_name_short);
                     // Not the capture's fault: say so instead of blaming its metadata.
                     furi_string_set(ctx->result, "Protocol plugin\nmissing or stale.");
+                    furi_string_set(ctx->error_info, "Protocol plugin load failed");
                     ctx->failure_kind = SubDecodeFailurePluginMissing;
                     break;
                 }
@@ -1148,10 +1139,11 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             furi_string_free(temp_str);
 
             if(!setup_ok) {
-                if(ctx->failure_kind != SubDecodeFailurePluginMissing) {
+                // Only the breaks that say nothing fall back to the generic message.
+                if(furi_string_empty(ctx->result)) {
                     furi_string_set(ctx->result, "Failed to read file metadata");
+                    furi_string_set(ctx->error_info, "Metadata read failed");
                 }
-                furi_string_set(ctx->error_info, "Metadata read failed");
                 ctx->state = DecodeStateShowFailure;
                 notification_message(app->notifications, &sequence_error);
                 break;
@@ -1392,13 +1384,12 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                     if(offers_bf) {
                         app->txrx->idx_menu_chosen = ctx->selected_history_index;
                         bool needs_bf = false;
-                        if(protopirate_psa_bf_plugin_ensure_loaded(app) && app->psa_bf_plugin) {
+                        if(protopirate_psa_bf_plugin_ensure_loaded(app)) {
                             needs_bf = app->psa_bf_plugin->needs_bruteforce(ff);
                         } else {
                             // Otherwise BF is hidden, which looks identical to "protocol has none".
                             FURI_LOG_E(TAG, "PSA bruteforce plugin unavailable, hiding BF");
                         }
-                        protopirate_psa_bf_plugin_unload_if_idle(app);
                         if(needs_bf) {
                             scene_manager_set_scene_state(
                                 app->scene_manager, ProtoPirateSceneSubDecode, STATE_BF);
@@ -1410,6 +1401,9 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                                 protopirate_scene_sub_decode_widget_callback,
                                 app);
                             left_button_bf = true;
+                        } else {
+                            // Keep it mapped only while the button that needs it is on screen.
+                            protopirate_psa_bf_plugin_unload_if_idle(app);
                         }
                     }
                 }

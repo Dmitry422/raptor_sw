@@ -96,9 +96,8 @@ static bool protopirate_ensure_protocol_registry_plugin(
            (void**)&app->txrx->protocol_plugin_flipper_application,
            (const void**)&app->txrx->protocol_plugin,
            ProtoPirateSharedPluginsTXRX,
-           plugin_path) ||
-       !app->txrx->protocol_plugin) {
-        FURI_LOG_E(TAG, "Failed to load RX protocol plugin %s", plugin_path ? plugin_path : "?");
+           plugin_path)) {
+        FURI_LOG_E(TAG, "Failed to load RX protocol plugin %s", plugin_path);
         protopirate_unload_protocol_plugin(app);
         return false;
     }
@@ -171,9 +170,7 @@ static bool protopirate_ensure_tx_protocol_plugin(
            (void**)&app->txrx->protocol_plugin_flipper_application,
            (const void**)&app->txrx->protocol_plugin,
            ProtoPirateSharedPluginsTXRX,
-           plugin_path) ||
-       !app->txrx->protocol_plugin || !app->txrx->protocol_plugin->registry ||
-       app->txrx->protocol_plugin->registry->size == 0U) {
+           plugin_path)) {
         FURI_LOG_E(TAG, "Failed to load TX protocol plugin %s", plugin_path);
         protopirate_unload_protocol_plugin(app);
         return false;
@@ -183,10 +180,7 @@ static bool protopirate_ensure_tx_protocol_plugin(
     if(!tx_protocol || !tx_protocol->encoder || !tx_protocol->encoder->alloc ||
        !tx_protocol->encoder->deserialize || !tx_protocol->encoder->yield) {
         FURI_LOG_E(TAG, "TX protocol plugin for %s has no encoder", registry_name);
-        if(app->txrx->protocol_plugin->release) {
-            app->txrx->protocol_plugin->release();
-        }
-        protopirate_unload_protocol_plugin(app);
+        protopirate_unload_protocol_plugin(app); // already calls release()
         return false;
     }
 
