@@ -1,4 +1,5 @@
 #include "protopirate_saved_info_plugin.h"
+#include "../../protocols/protocol_bf_probe.h"
 #include "../../protopirate_app_i.h"
 #include "../../helpers/protopirate_storage.h"
 #include "../../protocols/protocols_common.h"
@@ -216,13 +217,10 @@ cleanup:
         FURI_LOG_I(TAG, "Adding scroll element");
         widget_add_text_scroll_element(app->widget, 0, 0, 128, 50, furi_string_get_cstr(info_str));
 
-        bool needs_bf = false;
-        if(offers_bf && g_saved_info_scene_host_api->psa_bf_plugin_ensure_loaded(app) &&
-           app->psa_bf_plugin) {
-            needs_bf = app->psa_bf_plugin->widget_left_should_bruteforce(app, ff);
-        }
+        const bool bf_running = app->psa_bf_plugin && app->psa_bf_plugin->is_running(app);
+        const bool needs_bf = offers_bf && !bf_running &&
+                              protopirate_bf_probe_needs_bruteforce(ff);
 
-        g_saved_info_scene_host_api->psa_bf_plugin_unload_if_idle(app);
         if(needs_bf) {
             scene_manager_set_scene_state(app->scene_manager, ProtoPirateSceneSavedInfo, STATE_BF);
             widget_add_button_element(

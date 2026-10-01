@@ -28,11 +28,9 @@ void protopirate_scene_sub_decode_on_exit(void* context) {
 #else
 
 #include "../helpers/protopirate_storage.h"
-#include "../helpers/radio_device_loader.h"
 #include "../helpers/raw_file_reader.h"
 #include "../protopirate_history.h"
 #include "../helpers/protopirate_psa_bf_host.h"
-#include "../protocols/protocol_items.h"
 #include "core/core_defines.h"
 #include "core/record.h"
 #include "storage/storage.h"
@@ -92,7 +90,6 @@ typedef struct {
     FuriString* file_path;
     FuriString* protocol_name;
     FuriString* result;
-    FuriString* error_info;
     uint32_t frequency;
 
     Storage* storage;
@@ -100,7 +97,6 @@ typedef struct {
 
     ProtoPirateHistory* history;
     bool owns_history;
-    uint16_t signal_count;
     uint16_t selected_history_index;
     bool showing_signal_info;
     bool previous_preset_saved;
@@ -187,19 +183,21 @@ static void protopirate_scene_sub_decode_update_receiver_statusbar(
     char modulation_str[8] = {0};
     char history_stat_str[16] = {0};
 
-    g_tool_scene_host_api->get_frequency_modulation_str(app, frequency_str, 16, modulation_str, 8);
-    if(ctx && ctx->frequency > 0U) {
+    const bool own_frequency = ctx && ctx->frequency > 0U;
+    g_tool_scene_host_api->get_frequency_modulation_str(
+        app, own_frequency ? NULL : frequency_str, sizeof(frequency_str), modulation_str, 8);
+    if(own_frequency) {
         snprintf(
             frequency_str,
-            20,
+            sizeof(frequency_str),
             "%03lu.%02lu",
             (unsigned long)((ctx->frequency / 1000000UL) % 1000UL),
             (unsigned long)((ctx->frequency / 10000UL) % 100UL));
     }
 
-    const uint16_t signal_count =
+    const uint16_t history_count =
         (ctx && ctx->history) ? g_tool_scene_host_api->history_get_item(ctx->history) : 0U;
-    snprintf(history_stat_str, 16, "%u/%u", signal_count, PROTOPIRATE_HISTORY_MAX);
+    snprintf(history_stat_str, 16, "%u/%u", history_count, PROTOPIRATE_HISTORY_MAX);
 
     bool is_external =
         app->txrx->radio_device ?
@@ -275,8 +273,6 @@ static void protopirate_sub_decode_receiver_callback(
     const uint32_t virtual_tick = (uint32_t)(ctx->decode_elapsed_us / 1000ULL);
     if(g_tool_scene_host_api->history_add_to_history_at(
            ctx->history, decoder_base, app->txrx->preset, virtual_tick)) {
-        ctx->signal_count++;
-        FURI_LOG_I(TAG, "Added signal %u to history", ctx->signal_count);
         // No event: we are inside the view_dispatcher's own tick, so a blocking put on its
         // event queue would deadlock it. The tick repaints the statusbar per batch.
     }
@@ -316,7 +312,6 @@ static bool
         subghz_receiver_set_rx_callback(app->txrx->receiver, NULL, NULL);
     }
 
-    furi_string_set(ctx->error_info, "Cancelled");
     furi_string_set(ctx->result, "Decode cancelled");
     ctx->failure_kind = SubDecodeFailureCancelled;
     ctx->state = DecodeStateShowFailure;
@@ -393,15 +388,19 @@ static void
         break;
     case SubDecodeFailurePluginMissing:
         title = "Plugin missing";
-        __attribute__((fallthrough)); // the body is ctx->result, same as the generic case
-    default:
+        break;
+    case SubDecodeFailureGeneric:
+        break;
+    }
+
+    // Kinds that set no body of their own show whatever the failing site reported.
+    if(body[0] == '\0') {
         snprintf(
             body,
             sizeof(body),
             "%s",
             (ctx && !furi_string_empty(ctx->result)) ? furi_string_get_cstr(ctx->result) :
                                                        "Try another RAW file.");
-        break;
     }
 
     widget_add_string_element(app->widget, 64, 0, AlignCenter, AlignTop, FontPrimary, title);
@@ -454,10 +453,8 @@ static void protopirate_scene_sub_decode_reset_for_file(SubDecodeContext* ctx) {
     g_tool_scene_host_api->history_reset(ctx->history);
     furi_string_reset(ctx->protocol_name);
     furi_string_reset(ctx->result);
-    furi_string_reset(ctx->error_info);
 
     ctx->failure_kind = SubDecodeFailureGeneric;
-    ctx->signal_count = 0;
     ctx->selected_history_index = 0;
     ctx->showing_signal_info = false;
     ctx->worker_startup_delay = 0;
@@ -561,12 +558,9 @@ void protopirate_scene_sub_decode_on_enter(void* context) {
     g_decode_ctx->file_path = furi_string_alloc();
     g_decode_ctx->protocol_name = furi_string_alloc();
     g_decode_ctx->result = furi_string_alloc();
-    g_decode_ctx->error_info = furi_string_alloc();
     g_decode_ctx->state = DecodeStateIdle;
     g_decode_ctx->history = app->txrx->history;
     g_decode_ctx->owns_history = owns_history;
-    //g_tool_scene_host_api->history_reset(g_decode_ctx->history);
-    g_decode_ctx->signal_count = 0;
     g_decode_ctx->selected_history_index = 0;
     g_decode_ctx->raw_reader = NULL;
     g_decode_ctx->worker_startup_delay = 0;
@@ -773,21 +767,16 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             if(!g_tool_scene_host_api->psa_bf_plugin_ensure_loaded(app)) {
                 FURI_LOG_E(TAG, "Failed to load PSA bruteforce plugin");
                 furi_string_set(ctx->result, "Bruteforce plugin\nmissing or stale.");
-                furi_string_set(ctx->error_info, "BF plugin load failed");
                 ctx->failure_kind = SubDecodeFailurePluginMissing;
                 ctx->state = DecodeStateShowFailure;
-                // Leave signal-info, or the failure screen's OK button is gated off.
-                ctx->showing_signal_info = false;
                 notification_message(app->notifications, &sequence_error);
             } else if(!app->psa_bf_plugin->on_scene_event(
                           app, ProtoPiratePsaBfContextSubDecode, event)) {
                 // The host probe only needs a Key field; the bruteforce itself needs more.
                 FURI_LOG_E(TAG, "Bruteforce did not start");
                 furi_string_set(ctx->result, "Capture is missing\nfields to bruteforce.");
-                furi_string_set(ctx->error_info, "BF start failed");
-                ctx->failure_kind = SubDecodeFailurePluginMissing;
+                ctx->failure_kind = SubDecodeFailureGeneric;
                 ctx->state = DecodeStateShowFailure;
-                ctx->showing_signal_info = false;
                 notification_message(app->notifications, &sequence_error);
             } else if(app->psa_bf_plugin->is_running(app)) {
                 view_dispatcher_switch_to_view(app->view_dispatcher, ProtoPirateViewWidget);
@@ -852,7 +841,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             if(!flipper_format_file_open_existing(ctx->ff, furi_string_get_cstr(ctx->file_path))) {
                 FURI_LOG_E(TAG, "OpenFile: Failed to open file");
                 furi_string_set(ctx->result, "Failed to open file");
-                furi_string_set(ctx->error_info, "File open failed");
                 close_file_handles(ctx);
                 ctx->state = DecodeStateShowFailure;
                 notification_message(app->notifications, &sequence_error);
@@ -874,23 +862,19 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 FURI_LOG_D(TAG, "ReadHeader: Reading header");
                 if(!flipper_format_read_header(ctx->ff, temp_str, &version)) {
                     furi_string_set(ctx->result, "Invalid file format");
-                    furi_string_set(ctx->error_info, "Invalid header");
                     break;
                 }
 
                 FURI_LOG_D(TAG, "ReadHeader: Header type: %s", furi_string_get_cstr(temp_str));
                 if(furi_string_cmp_str(temp_str, "Flipper SubGhz RAW File") != 0) {
                     furi_string_set(ctx->result, "Not a RAW SubGhz file");
-                    furi_string_set(ctx->error_info, "Not RAW SubGhz file");
                     ctx->failure_kind = SubDecodeFailureNotRaw;
                     break;
                 }
 
                 FURI_LOG_D(TAG, "ReadHeader: Reading protocol");
-                if(!flipper_format_read_string(
-                       ctx->ff, g_tool_scene_host_api->ff_protocol, ctx->protocol_name)) {
+                if(!flipper_format_read_string(ctx->ff, FF_PROTOCOL, ctx->protocol_name)) {
                     furi_string_set(ctx->result, "Missing Protocol");
-                    furi_string_set(ctx->error_info, "No protocol field");
                     break;
                 }
 
@@ -898,8 +882,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 flipper_format_rewind(ctx->ff);
                 flipper_format_read_header(ctx->ff, temp_str, &version);
                 ctx->frequency = 433920000;
-                flipper_format_read_uint32(
-                    ctx->ff, g_tool_scene_host_api->ff_frequency, &ctx->frequency, 1);
+                flipper_format_read_uint32(ctx->ff, FF_FREQUENCY, &ctx->frequency, 1);
 
                 FURI_LOG_I(
                     TAG,
@@ -932,7 +915,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             } else {
                 FURI_LOG_W(TAG, "ReadHeader: Non-RAW protocol not supported");
                 close_file_handles(ctx);
-                furi_string_set(ctx->error_info, "Only RAW supported");
                 ctx->failure_kind = SubDecodeFailureNotRaw;
                 ctx->state = DecodeStateShowFailure;
             }
@@ -991,14 +973,12 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                     break;
                 }
 
-                if(!flipper_format_read_uint32(
-                       fff_data_file, g_tool_scene_host_api->ff_frequency, &ctx->frequency, 1)) {
+                if(!flipper_format_read_uint32(fff_data_file, FF_FREQUENCY, &ctx->frequency, 1)) {
                     FURI_LOG_E(TAG, "Missing Frequency");
                     break;
                 }
 
-                if(!flipper_format_read_string(
-                       fff_data_file, g_tool_scene_host_api->ff_preset, temp_str)) {
+                if(!flipper_format_read_string(fff_data_file, FF_PRESET, temp_str)) {
                     FURI_LOG_E(TAG, "Missing Preset");
                     break;
                 }
@@ -1083,7 +1063,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                     FURI_LOG_E(TAG, "Failed to rebuild receiver for preset %s", preset_name_short);
                     // Not the capture's fault: say so instead of blaming its metadata.
                     furi_string_set(ctx->result, "Protocol plugin\nmissing or stale.");
-                    furi_string_set(ctx->error_info, "Protocol plugin load failed");
                     ctx->failure_kind = SubDecodeFailurePluginMissing;
                     break;
                 }
@@ -1105,7 +1084,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 // Only the breaks that say nothing fall back to the generic message.
                 if(furi_string_empty(ctx->result)) {
                     furi_string_set(ctx->result, "Failed to read file metadata");
-                    furi_string_set(ctx->error_info, "Metadata read failed");
                 }
                 ctx->state = DecodeStateShowFailure;
                 notification_message(app->notifications, &sequence_error);
@@ -1121,7 +1099,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             if(!ctx->raw_reader) {
                 FURI_LOG_E(TAG, "Failed to allocate raw reader");
                 furi_string_set(ctx->result, "Memory allocation failed");
-                furi_string_set(ctx->error_info, "Out of memory");
                 ctx->state = DecodeStateShowFailure;
                 notification_message(app->notifications, &sequence_error);
                 break;
@@ -1150,7 +1127,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                         "(limit %lu KB)",
                         (uint32_t)(file_size / 1024U),
                         (uint32_t)(SUB_DECODE_MAX_FILE_SIZE / 1024U));
-                    furi_string_set(ctx->error_info, "File too large");
                     ctx->state = DecodeStateShowFailure;
                     notification_message(app->notifications, &sequence_error);
                     break;
@@ -1167,7 +1143,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 raw_file_reader_free(ctx->raw_reader);
                 ctx->raw_reader = NULL;
                 furi_string_set(ctx->result, "Failed to open RAW file");
-                furi_string_set(ctx->error_info, "File open failed");
                 ctx->state = DecodeStateShowFailure;
                 notification_message(app->notifications, &sequence_error);
                 break;
@@ -1188,7 +1163,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             if(!ctx->raw_reader) {
                 FURI_LOG_E(TAG, "DecodingRaw: No raw reader");
                 furi_string_set(ctx->result, "Decode stopped\nunexpectedly.");
-                furi_string_set(ctx->error_info, "Raw reader missing");
                 ctx->state = DecodeStateShowFailure;
                 notification_message(app->notifications, &sequence_error);
                 break;
@@ -1201,11 +1175,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
             while(samples_processed < SAMPLES_TO_READ_PER_TICK) {
                 if(!raw_file_reader_get_next(ctx->raw_reader, &level, &duration)) {
                     const bool at_eof = raw_file_reader_is_finished(ctx->raw_reader);
-                    FURI_LOG_I(
-                        TAG,
-                        "DecodingRaw: Read stopped, eof=%d, signals=%u",
-                        at_eof,
-                        ctx->signal_count);
+                    FURI_LOG_I(TAG, "DecodingRaw: Read stopped, eof=%d", at_eof);
 
                     raw_file_reader_free(ctx->raw_reader);
                     ctx->raw_reader = NULL;
@@ -1214,7 +1184,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
 
                     if(!at_eof) {
                         furi_string_set(ctx->result, "Failed while reading RAW file");
-                        furi_string_set(ctx->error_info, "Read interrupted");
                         ctx->state = DecodeStateShowFailure;
                         notification_message(app->notifications, &sequence_error);
                         break;
@@ -1238,7 +1207,6 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                             "detected in signal.",
                             ctx->frequency / 1000000,
                             (ctx->frequency % 1000000) / 10000);
-                        furi_string_set(ctx->error_info, "No protocol match");
                         ctx->failure_kind = SubDecodeFailureNoMatch;
                         ctx->state = DecodeStateShowFailure;
                         notification_message(app->notifications, &sequence_error);
@@ -1257,6 +1225,8 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
         }
 
         case DecodeStateShowFailure: {
+            // The failure widget owns the screen, so its OK button must not be gated off.
+            ctx->showing_signal_info = false;
             protopirate_scene_sub_decode_draw_failure(app, ctx);
             view_dispatcher_switch_to_view(app->view_dispatcher, ProtoPirateViewWidget);
             ctx->state = DecodeStateDone;
@@ -1336,8 +1306,7 @@ bool protopirate_scene_sub_decode_on_event(void* context, SceneManagerEvent even
                 if(ff) {
                     FuriString* proto_str = furi_string_alloc();
                     flipper_format_rewind(ff);
-                    bool have_proto = flipper_format_read_string(
-                        ff, g_tool_scene_host_api->ff_protocol, proto_str);
+                    bool have_proto = flipper_format_read_string(ff, FF_PROTOCOL, proto_str);
                     bool offers_bf = have_proto &&
                                      g_tool_scene_host_api->catalog_offers_bruteforce(
                                          furi_string_get_cstr(proto_str));
@@ -1460,7 +1429,6 @@ void protopirate_scene_sub_decode_on_exit(void* context) {
         furi_string_free(g_decode_ctx->file_path);
         furi_string_free(g_decode_ctx->protocol_name);
         furi_string_free(g_decode_ctx->result);
-        furi_string_free(g_decode_ctx->error_info);
         free(g_decode_ctx);
         g_decode_ctx = NULL;
     }

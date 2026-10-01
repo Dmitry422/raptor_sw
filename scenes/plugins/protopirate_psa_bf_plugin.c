@@ -97,10 +97,6 @@ static void bf_free_states(void) {
     g_bf_kind = ProtoPirateBfKindNone;
 }
 
-static bool psa_bf_needs_bruteforce(FlipperFormat* ff) {
-    return protopirate_bf_probe_psa_needs_bruteforce(ff);
-}
-
 static void show_bf_progress(void* app) {
     Widget* widget = g_host_api->get_widget(app);
     if(!widget || (!g_bf_state && !g_hitag2_state)) return;
@@ -357,11 +353,7 @@ static bool start_bruteforce(void* app) {
         }
     }
 
-    if(!plugin_needs_bruteforce(g_ff)) {
-        FURI_LOG_E(TAG, "Capture does not need a bruteforce");
-        return false;
-    }
-    if(psa_bf_needs_bruteforce(g_ff)) {
+    if(protopirate_bf_probe_psa_needs_bruteforce(g_ff)) {
         PsaBfState* state = malloc(sizeof(PsaBfState));
         if(!state) {
             g_host_api->notification_error(app);

@@ -12,7 +12,9 @@
 #include "../../views/protopirate_receiver.h"
 
 #define PROTOPIRATE_TOOL_SCENE_PLUGIN_APP_ID      "protopirate_tool_scene_plugins"
-#define PROTOPIRATE_TOOL_SCENE_PLUGIN_API_VERSION 2U
+// Derived from the layout: this struct is a de-facto ABI, and a hand-bumped number is
+// exactly what got missed when a member was once inserted mid-struct.
+#define PROTOPIRATE_TOOL_SCENE_PLUGIN_API_VERSION ((uint32_t)sizeof(ProtoPirateToolSceneHostApi))
 
 typedef enum {
     ProtoPirateToolScenePluginKindSubDecode = 0,
@@ -78,7 +80,6 @@ typedef struct {
         ProtoPirateHistory* history);
 
     bool (*psa_bf_plugin_ensure_loaded)(void* app);
-    void (*psa_bf_plugin_unload_if_idle)(void* app);
     void (*psa_bf_context_release)(void* app);
 
     // Host-resident helpers, so a tool-scene plugin need not compile a second copy of
@@ -87,9 +88,6 @@ typedef struct {
     bool (*catalog_offers_bruteforce)(const char* protocol_name);
     bool (*catalog_needs_bruteforce)(FlipperFormat* ff);
 
-    const char* ff_protocol;
-    const char* ff_preset;
-    const char* ff_frequency;
     const char* (*get_short_preset_name)(const char* preset_name);
     bool (*preset_name_is_custom_marker)(const char* preset_name);
 

@@ -10,25 +10,13 @@
 #define HITAG2_BF_RECOVERED "Recovered"
 #define HITAG2_BF_KEY_SIZE  6U
 
-static bool bf_probe_protocol_is(FlipperFormat* ff, const char* name) {
-    FuriString* value = furi_string_alloc();
-    flipper_format_rewind(ff);
-    const bool match = flipper_format_read_string(ff, FF_PROTOCOL, value) &&
-                       furi_string_cmp_str(value, name) == 0;
-    furi_string_free(value);
-    return match;
-}
-
-static bool bf_probe_has_key(FlipperFormat* ff) {
-    FuriString* value = furi_string_alloc();
-    flipper_format_rewind(ff);
-    const bool has_key = flipper_format_read_string(ff, FF_KEY, value);
-    furi_string_free(value);
-    return has_key;
-}
-
 bool protopirate_bf_probe_psa_needs_bruteforce(FlipperFormat* ff) {
-    if(!ff || !bf_probe_protocol_is(ff, PSA_PROTOCOL_NAME) || !bf_probe_has_key(ff)) {
+    if(!ff) {
+        return false;
+    }
+    flipper_format_rewind(ff);
+    if(pp_verify_protocol_name(ff, PSA_PROTOCOL_NAME) != SubGhzProtocolStatusOk ||
+       !flipper_format_key_exist(ff, FF_KEY)) {
         return false;
     }
 
@@ -39,7 +27,12 @@ bool protopirate_bf_probe_psa_needs_bruteforce(FlipperFormat* ff) {
 }
 
 bool protopirate_bf_probe_hitag2_needs_bruteforce(FlipperFormat* ff) {
-    if(!ff || !bf_probe_protocol_is(ff, RENAULT_PROTOCOL_V1_NAME) || !bf_probe_has_key(ff)) {
+    if(!ff) {
+        return false;
+    }
+    flipper_format_rewind(ff);
+    if(pp_verify_protocol_name(ff, RENAULT_PROTOCOL_V1_NAME) != SubGhzProtocolStatusOk ||
+       !flipper_format_key_exist(ff, FF_KEY)) {
         return false;
     }
 

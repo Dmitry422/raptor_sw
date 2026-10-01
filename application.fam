@@ -456,6 +456,7 @@ App(
     sources=[
         "scenes/plugins/protopirate_saved_info_plugin.c",
         "protocols/protocols_common.c",
+        "protocols/protocol_bf_probe.c",
     ],
     fap_icon_assets="images",
     fal_embedded=True,

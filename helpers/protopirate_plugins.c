@@ -18,7 +18,13 @@ const FlipperAppPluginDescriptor* load_plugin_fal(
         FlipperApplicationPreloadStatus preload_res =
             flipper_application_preload(*fal_app, plugin_path);
         if(preload_res != FlipperApplicationPreloadStatusSuccess) {
-            FURI_LOG_E(TAG, "Failed to preload plugin: %s", plugin_path);
+            FURI_LOG_E(
+                TAG,
+                "Failed to preload plugin: %s (%s)",
+                plugin_path,
+                preload_res == FlipperApplicationPreloadStatusNotEnoughMemory ?
+                    "out of memory" :
+                    "invalid or stale");
             break;
         }
 
@@ -209,8 +215,8 @@ bool shared_plugin_load(
                 }
             } else if(plugin_type == ProtoPirateSharedPluginsPSABruteforce) {
                 const ProtoPiratePsaBfPlugin* plugin_psa_bf = app_descriptor->entry_point;
-                if(!plugin_psa_bf || !plugin_psa_bf->needs_bruteforce ||
-                   !plugin_psa_bf->set_host_api) {
+                if(!plugin_psa_bf || !plugin_psa_bf->set_host_api || !plugin_psa_bf->is_running ||
+                   !plugin_psa_bf->on_scene_event) {
                     FURI_LOG_E(TAG, "PSA plugin entry point is invalid");
                 } else {
                     *plugin_pointer = plugin_psa_bf;

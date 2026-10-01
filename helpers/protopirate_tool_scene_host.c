@@ -80,10 +80,6 @@ static bool host_psa_bf_plugin_ensure_loaded(void* app) {
     return protopirate_psa_bf_plugin_ensure_loaded((ProtoPirateApp*)app);
 }
 
-static void host_psa_bf_plugin_unload_if_idle(void* app) {
-    protopirate_psa_bf_plugin_unload_if_idle(app);
-}
-
 static void host_psa_bf_context_release(void* app) {
     protopirate_psa_bf_context_release((ProtoPirateApp*)app);
 }
@@ -112,16 +108,12 @@ static const ProtoPirateToolSceneHostApi protopirate_tool_scene_host_api = {
     .receiver_reset_menu = protopirate_view_receiver_reset_menu,
     .receiver_sync_menu_from_history = protopirate_view_receiver_sync_menu_from_history,
     .psa_bf_plugin_ensure_loaded = host_psa_bf_plugin_ensure_loaded,
-    .psa_bf_plugin_unload_if_idle = host_psa_bf_plugin_unload_if_idle,
-    .catalog_needs_bruteforce = protopirate_bf_probe_needs_bruteforce,
     .psa_bf_context_release = host_psa_bf_context_release,
 
     .catalog_can_tx = protopirate_protocol_catalog_can_tx,
     .catalog_offers_bruteforce = protopirate_protocol_catalog_offers_bruteforce,
+    .catalog_needs_bruteforce = protopirate_bf_probe_needs_bruteforce,
 
-    .ff_protocol = FF_PROTOCOL,
-    .ff_preset = FF_PRESET,
-    .ff_frequency = FF_FREQUENCY,
     .get_short_preset_name = pp_get_short_preset_name,
     .preset_name_is_custom_marker = pp_preset_name_is_custom_marker,
 
