@@ -124,7 +124,8 @@ bool protopirate_psa_bf_plugin_ensure_loaded(ProtoPirateApp* app) {
         return false;
     }
 }
-void protopirate_psa_bf_plugin_unload_if_idle(ProtoPirateApp* app) {
+void protopirate_psa_bf_plugin_unload_if_idle(void* context) {
+    ProtoPirateApp* app = context;
     if(!app) return;
     if(app->psa_bf_plugin && app->psa_bf_plugin->is_running &&
        app->psa_bf_plugin->is_running(app)) {

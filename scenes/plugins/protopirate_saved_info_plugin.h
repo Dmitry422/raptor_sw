@@ -8,7 +8,7 @@ typedef struct ProtoPirateApp ProtoPirateApp;
 typedef struct ProtoPirateSavedInfoSceneHostApi {
     bool (*ensure_widget)(ProtoPirateApp* app);
     bool (*psa_bf_plugin_ensure_loaded)(ProtoPirateApp* app);
-    void (*psa_bf_plugin_unload_if_idle)(ProtoPirateApp* app);
+    void (*psa_bf_plugin_unload_if_idle)(void* context);
     bool (*protocol_catalog_can_tx)(const char* protocol_name);
     bool (*storage_delete_file)(const char* file_path);
     bool (*protocol_catalog_offers_bruteforce)(const char* protocol_name);
