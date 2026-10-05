@@ -8,7 +8,6 @@
 #include "helpers/protopirate_bruteforce_host.h"
 #include "helpers/protopirate_views.h"
 #include "helpers/protopirate_radio.h"
-#include "helpers/protopirate_plugins.h"
 #include <string.h>
 
 #define TAG "PPApp"
@@ -155,21 +154,23 @@ ProtoPirateApp* protopirate_app_alloc() {
         settings.hopper_state);
 
     // Null out plugin pointers just in case.
-    app->plugin_flipper_application = NULL;
-    app->shared_plugin = NULL;
-    app->bruteforce_plugin = NULL;
+    app->running_plugin_flipper_application = NULL;
+    app->running_plugin.plugin_pointer = NULL;
+    app->running_bruteforce_plugin.plugin_pointer = NULL;
+    app->txrx->running_plugin.plugin_pointer = NULL;
     app->variable_item_list = NULL;
 
     //Load the models database, get the count of the models for the list.
 #ifdef ENABLE_MODELS_DATABASE
     if(shared_plugin_load(
-           (void**)&app->plugin_flipper_application,
-           &app->shared_plugin,
+           &app->running_plugin_flipper_application,
+           &app->running_plugin,
            ProtoPirateSharedPluginsConfig,
            NULL) &&
-       app->shared_plugin) {
-        app->car_models_count =
-            ((ProtoPirateConfigPlugin*)app->shared_plugin)->car_model_get_count();
+       app->running_plugin.config_plugin) {
+        FURI_LOG_D("test", "getting count");
+        app->car_models_count = app->running_plugin.config_plugin->car_model_get_count();
+        FURI_LOG_D("test", "got count");
     } else {
         notification_message(app->notifications, &sequence_error);
         app->car_models_count = 0;
@@ -180,15 +181,11 @@ ProtoPirateApp* protopirate_app_alloc() {
     app->selected_model->index = 0; // optional but clean
 
     //Grab selected car model.
-    if(app->shared_plugin) {
+    if(app->running_plugin.config_plugin) {
         if(settings.car_model_index) {
             //Get the selected car model.
-            ((ProtoPirateConfigPlugin*)app->shared_plugin)
-                ->car_model_get_by_index(
-                    app->selected_model,
-                    settings.car_model_index,
-                    app->car_models_count,
-                    app->setting);
+            app->running_plugin.config_plugin->car_model_get_by_index(
+                app->selected_model, settings.car_model_index, app->car_models_count, app->setting);
             app->selected_model->last_preset_index = settings.preset_index;
 
             //Preset for the selected model...
@@ -200,17 +197,15 @@ ProtoPirateApp* protopirate_app_alloc() {
                 app->selected_model->preset->data_size);
         } else {
             //This will return Select a model or No Models in Database
-            ((ProtoPirateConfigPlugin*)app->shared_plugin)
-                ->car_model_get_by_index(
-                    app->selected_model, 0, app->car_models_count, app->setting);
+            app->running_plugin.config_plugin->car_model_get_by_index(
+                app->selected_model, 0, app->car_models_count, app->setting);
 
             //Preset set in Config.
             protopirate_preset_init(app, preset_name, frequency, preset_data, preset_data_size);
         }
 
         //Kill the config plugin now.
-        shared_plugin_unload(
-            (void**)&app->plugin_flipper_application, (const void**)&app->shared_plugin);
+        shared_plugin_unload(&app->running_plugin_flipper_application, &app->running_plugin);
     } else {
 #endif
         //Preset set in Config.

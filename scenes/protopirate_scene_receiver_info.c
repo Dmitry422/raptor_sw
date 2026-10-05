@@ -114,8 +114,10 @@ static void protopirate_receiver_info_build_normal_widget(ProtoPirateApp* app) {
 
     bool needs_bf = false;
     bool error = false;
-    if(offers_bf && protopirate_bruteforce_plugin_ensure_loaded(app) && app->bruteforce_plugin) {
-        needs_bf = app->bruteforce_plugin->widget_left_should_bruteforce(app, ff);
+    if(offers_bf && protopirate_bruteforce_plugin_ensure_loaded(app) &&
+       app->running_bruteforce_plugin.bruteforce_plugin) {
+        needs_bf = app->running_bruteforce_plugin.bruteforce_plugin->widget_left_should_bruteforce(
+            app, ff);
     } else if(offers_bf) {
         //Show the user the error in the button.
         widget_add_button_element(app->widget, GuiButtonTypeLeft, "(Error)", NULL, app);
@@ -213,9 +215,10 @@ void protopirate_scene_receiver_info_on_enter(void* context) {
 
     app->emulate_disabled_for_loaded = false;
 
-    if(app->bruteforce_plugin) {
-        if(app->bruteforce_plugin->is_running(app)) {
-            app->bruteforce_plugin->on_scene_enter(app, ProtoPirateBruteForceContextReceiverInfo);
+    if(app->running_bruteforce_plugin.bruteforce_plugin) {
+        if(app->running_bruteforce_plugin.bruteforce_plugin->is_running(app)) {
+            app->running_bruteforce_plugin.bruteforce_plugin->on_scene_enter(
+                app, ProtoPirateBruteForceContextReceiverInfo);
             view_dispatcher_switch_to_view(app->view_dispatcher, ProtoPirateViewWidget);
             return;
         }
@@ -237,15 +240,15 @@ bool protopirate_scene_receiver_info_on_event(void* context, SceneManagerEvent e
         return true;
     }
 
-    if(app->bruteforce_plugin) {
-        if(app->bruteforce_plugin->is_running(app) ||
+    if(app->running_bruteforce_plugin.bruteforce_plugin) {
+        if(app->running_bruteforce_plugin.bruteforce_plugin->is_running(app) ||
            event.event == ProtoPirateCustomEventBruteforceStart) {
-            consumed = app->bruteforce_plugin->on_scene_event(
+            consumed = app->running_bruteforce_plugin.bruteforce_plugin->on_scene_event(
                 app, ProtoPirateBruteForceContextReceiverInfo, event);
             if(consumed) return true;
         }
         if(event.type == SceneManagerEventTypeBack &&
-           app->bruteforce_plugin->on_scene_event(
+           app->running_bruteforce_plugin.bruteforce_plugin->on_scene_event(
                app, ProtoPirateBruteForceContextReceiverInfo, event)) {
             return true;
         }

@@ -222,7 +222,7 @@ static void protopirate_scene_sub_decode_update_receiver_progress(
     }
 }
 
-void protopirate_subdecode_bruteforce_complete_refresh(void* app) {
+void protopirate_subdecode_bruteforce_complete_refresh(ProtoPirateApp* app) {
     ProtoPirateApp* a = (ProtoPirateApp*)app;
     SubDecodeContext* ctx = g_decode_ctx;
     if(!a || !ctx) return;
@@ -755,10 +755,10 @@ bool plugin_scene_sub_decode_on_event(ProtoPirateApp* app, SceneManagerEvent eve
         else if(event.event == ProtoPirateCustomEventBruteforceStart) {
             app->txrx->idx_menu_chosen = ctx->selected_history_index;
             if(g_shared_plugin_host_api->bruteforce_plugin_ensure_loaded(app) &&
-               app->bruteforce_plugin &&
-               app->bruteforce_plugin->on_scene_event(
+               app->running_bruteforce_plugin.bruteforce_plugin &&
+               app->running_bruteforce_plugin.bruteforce_plugin->on_scene_event(
                    app, ProtoPirateBruteForceContextSubDecode, event)) {
-                if(app->bruteforce_plugin->is_running(app)) {
+                if(app->running_bruteforce_plugin.bruteforce_plugin->is_running(app)) {
                     view_dispatcher_switch_to_view(app->view_dispatcher, ProtoPirateViewWidget);
                 }
             }
@@ -766,8 +766,8 @@ bool plugin_scene_sub_decode_on_event(ProtoPirateApp* app, SceneManagerEvent eve
             return consumed;
         } else if(event.event == ProtoPirateCustomEventBruteforceComplete) {
             app->txrx->idx_menu_chosen = ctx->selected_history_index;
-            if(app->bruteforce_plugin) {
-                app->bruteforce_plugin->on_scene_event(
+            if(app->running_bruteforce_plugin.bruteforce_plugin) {
+                app->running_bruteforce_plugin.bruteforce_plugin->on_scene_event(
                     app, ProtoPirateBruteForceContextSubDecode, event);
             }
             ctx->state = DecodeStateShowSignalInfo;
@@ -808,8 +808,9 @@ bool plugin_scene_sub_decode_on_event(ProtoPirateApp* app, SceneManagerEvent eve
         consumed = true;
 
         app->txrx->idx_menu_chosen = ctx->selected_history_index;
-        if(app->bruteforce_plugin && app->bruteforce_plugin->is_running(app) &&
-           app->bruteforce_plugin->on_scene_event(
+        if(app->running_bruteforce_plugin.bruteforce_plugin &&
+           app->running_bruteforce_plugin.bruteforce_plugin->is_running(app) &&
+           app->running_bruteforce_plugin.bruteforce_plugin->on_scene_event(
                app, ProtoPirateBruteForceContextSubDecode, event)) {
             return consumed;
         }
@@ -1318,8 +1319,10 @@ bool plugin_scene_sub_decode_on_event(ProtoPirateApp* app, SceneManagerEvent eve
                         app->txrx->idx_menu_chosen = ctx->selected_history_index;
                         bool needs_bf = false;
                         if(g_shared_plugin_host_api->bruteforce_plugin_ensure_loaded(app) &&
-                           app->bruteforce_plugin) {
-                            needs_bf = app->bruteforce_plugin->needs_bruteforce(ff);
+                           app->running_bruteforce_plugin.bruteforce_plugin) {
+                            needs_bf =
+                                app->running_bruteforce_plugin.bruteforce_plugin->needs_bruteforce(
+                                    ff);
                         } else {
                             //Show the user the error.
                             widget_add_button_element(
@@ -1378,8 +1381,9 @@ bool plugin_scene_sub_decode_on_event(ProtoPirateApp* app, SceneManagerEvent eve
             consumed = true;
             return consumed;
         }
-        if(app->bruteforce_plugin && app->bruteforce_plugin->on_scene_event(
-                                         app, ProtoPirateBruteForceContextSubDecode, event)) {
+        if(app->running_bruteforce_plugin.bruteforce_plugin &&
+           app->running_bruteforce_plugin.bruteforce_plugin->on_scene_event(
+               app, ProtoPirateBruteForceContextSubDecode, event)) {
             consumed = true;
             return consumed;
         }

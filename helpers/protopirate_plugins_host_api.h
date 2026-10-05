@@ -10,13 +10,15 @@
 #include "../defines.h"
 #include "../protopirate_history.h"
 #include "../views/protopirate_receiver.h"
-#include "protopirate_plugins.h"
 
 #include "protopirate_settings.h"
 #include "../protocols/bruteforce_types.h"
 
 typedef struct ProtoPirateApp ProtoPirateApp;
 typedef struct Widget Widget;
+typedef union ProtoPiratePlugin ProtoPiratePlugin;
+typedef enum ProtoPirateSharedPluginIDs ProtoPirateSharedPluginIDs;
+
 typedef struct ProtoPirateSharedPluginHostApi {
     bool (*ensure_receiver_view)(void* app);
     bool (*ensure_widget)(void* app);
@@ -80,11 +82,13 @@ typedef struct ProtoPirateSharedPluginHostApi {
     void (*settings_save)(ProtoPirateSettings* settings);
     const char* fap_version;
     bool (*plugin_load)(
-        void** flipper_application_pointer,
-        const void** plugin_pointer,
+        FlipperApplication** flipper_application_pointer,
+        ProtoPiratePlugin* plugin_pointer,
         ProtoPirateSharedPluginIDs plugin_type,
         const char* txrx_path);
-    void (*plugin_unload)(void** flipper_application_pointer, const void** plugin_pointer);
+    void (*plugin_unload)(
+        FlipperApplication** flipper_application_pointer,
+        ProtoPiratePlugin* plugin_pointer);
     bool (*protocol_catalog_can_tx)(const char* protocol_name);
     bool (*storage_delete_file)(const char* file_path);
     bool (*protocol_catalog_offers_bruteforce)(const char* protocol_name);
