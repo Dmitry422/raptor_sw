@@ -8,8 +8,8 @@
 #include "../helpers/RemoteAnalyzer/protopirate_remote_analyzer_worker.h"
 #include "../helpers/protopirate_txrx.h"
 
-#include <assets_icons.h>
 #include <float_tools.h>
+#include "pp_ra_icons.h"
 
 #define TAG "PPRemoteAnalyzer"
 
