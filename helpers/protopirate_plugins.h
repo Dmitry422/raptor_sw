@@ -109,5 +109,5 @@ typedef union ProtoPiratePlugin {
     const ProtoPirateConfigPlugin* config_plugin;
     const ProtoPirateBruteForcePlugin* bruteforce_plugin;
     const ProtoPirateProtocolPlugin* protocol_plugin;
-    const void* plugin_pointer;
+    const void* plugin_pointer; //DONT USE. ONLY FOR LOADER AND UNLOADER
 } ProtoPiratePlugin;
