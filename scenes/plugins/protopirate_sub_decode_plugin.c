@@ -1352,7 +1352,7 @@ bool plugin_scene_sub_decode_on_event(ProtoPirateApp* app, SceneManagerEvent eve
                     widget_add_button_element(
                         app->widget,
                         GuiButtonTypeLeft,
-                        "Remote",
+                        "Emulate",
                         protopirate_scene_sub_decode_widget_callback,
                         app);
                 }
