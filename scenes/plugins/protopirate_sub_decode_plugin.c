@@ -248,7 +248,6 @@ static void protopirate_sub_decode_receiver_callback(
     SubGhzProtocolDecoderBase* decoder_base,
     void* context) {
     UNUSED(receiver);
-    furi_check(context);
     ProtoPirateApp* app = context;
     SubDecodeContext* ctx = g_decode_ctx;
 

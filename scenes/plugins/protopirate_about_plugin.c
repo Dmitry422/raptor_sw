@@ -170,7 +170,6 @@ static void about_draw_callback(Canvas* canvas, void* context) {
 }
 
 static bool about_input_callback(InputEvent* event, void* context) {
-    furi_check(context);
 #ifdef ENABLE_EMULATE_FEATURE
     ProtoPirateApp* app = context;
 

@@ -204,7 +204,6 @@ static void protopirate_scene_receiver_info_widget_callback(
 }
 
 void protopirate_scene_receiver_info_on_enter(void* context) {
-    furi_check(context);
     ProtoPirateApp* app = context;
 
     if(!protopirate_ensure_widget(app)) {
@@ -431,7 +430,6 @@ bool protopirate_scene_receiver_info_on_event(void* context, SceneManagerEvent e
 }
 
 void protopirate_scene_receiver_info_on_exit(void* context) {
-    furi_check(context);
     ProtoPirateApp* app = context;
     protopirate_bruteforce_context_release(app);
     widget_reset(app->widget);

@@ -209,9 +209,6 @@ static void emulate_hitag2_key_input_callback(void* context) {
 }
 
 static bool emulate_prompt_hitag2_key(ProtoPirateApp* app, EmulateContext* ctx) {
-    furi_check(app);
-    furi_check(ctx);
-
     if(!g_host_api || !g_host_api->ensure_text_input(app)) {
         return false;
     }
@@ -312,7 +309,6 @@ static const uint8_t tx_power_value[TX_PRESET_VALUES_COUNT] = {
 };
 
 static bool emulate_radio_ready(ProtoPirateApp* app) {
-    furi_check(app);
     return app->radio_initialized && app->txrx && app->txrx->radio_device &&
            app->txrx->environment;
 }
@@ -347,9 +343,6 @@ static bool emulate_resolved_preset_assign_named(
     ProtoPirateApp* app,
     const char* preset_name,
     EmulateResolvedPreset* preset) {
-    furi_check(app);
-    furi_check(preset);
-
     int preset_index = subghz_setting_get_inx_preset_by_name(app->setting, preset_name);
     if(preset_index < 0) return false;
 
@@ -365,8 +358,6 @@ static bool emulate_resolved_preset_assign_named(
 
 static bool
     emulate_resolved_preset_try_load_custom(EmulateContext* ctx, EmulateResolvedPreset* preset) {
-    furi_check(ctx);
-    furi_check(preset);
     if(!ctx->flipper_format) return false;
 
     uint32_t value_count = 0;
@@ -396,10 +387,6 @@ static bool emulate_context_resolve_tx_preset(
     ProtoPirateApp* app,
     EmulateContext* ctx,
     EmulateResolvedPreset* preset) {
-    furi_check(app);
-    furi_check(ctx);
-    furi_check(preset);
-
     memset(preset, 0, sizeof(*preset));
 
     const char* requested_preset = ctx->preset ? ctx->preset : "AM650";
@@ -496,7 +483,6 @@ static void emulate_context_free(void) {
         furi_record_close(RECORD_STORAGE);
         emulate_context->storage = NULL;
     }
-
     free(emulate_context);
     emulate_context = NULL;
 }
@@ -794,7 +780,7 @@ static uint8_t emu_button_for_protocol(
         case InputKeyDown:
             return 0x8; // Boot
         case InputKeyRight:
-            return 0x10;
+            return 0x16;
         default:
             return original;
         }
@@ -990,7 +976,7 @@ static void emulate_draw_callback(Canvas* canvas, void* model) {
         canvas_draw_str(canvas, 28 + wave * 2, 25, ")))");
 
         canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str_aligned(canvas, 64, 24, AlignCenter, AlignCenter, "TX");
+        canvas_draw_str_aligned(canvas, 64, 24, AlignCenter, AlignCenter, "Tx");
 
         canvas_invert_color(canvas);
     }
@@ -1062,8 +1048,6 @@ static bool
 }
 
 static void plugin_on_enter(ProtoPirateApp* app) {
-    furi_check(g_host_api);
-
     if(!g_host_api->ensure_view_about || !g_host_api->ensure_view_about(app)) {
         notification_message(app->notifications, &sequence_error);
         view_dispatcher_send_custom_event(
