@@ -1,6 +1,16 @@
 #pragma once
 #include "../defines.h"
 #include "protopirate_types.h"
+#include "helpers/protopirate_plugins_host_api.h"
+#include "../scenes/plugins/protopirate_config_plugin.h"
+#include "../scenes/plugins/protopirate_bruteforce_plugin.h"
+#include "protopirate_bruteforce_host.h"
+#include "protocols/protopirate_protocol_plugins.h"
+
+#include <lib/flipper_application/flipper_application.h>
+#include <gui/scene_manager.h>
+
+#include <gui/view_dispatcher.h>
 typedef enum ProtoPirateSharedPluginIDs {
     ProtoPirateSharedPluginsConfig,
     ProtoPirateSharedPluginsSavedInfo,
@@ -55,7 +65,7 @@ typedef enum ProtoPirateSharedPluginIDs {
     ((uint32_t)sizeof(ProtoPirateSharedPluginHostApi))
 #endif
 
-//Brute Force Plugin
+//Brute Force Plugin Uses its own plugin type, has a header file.
 #define PROTOPIRATE_BRUTEFORCE_PLUGIN_PATH   "pp_bf.fal"
 #define PROTOPIRATE_BRUTEFORCE_PLUGIN_APP_ID "pp_bf"
 #define PROTOPIRATE_BRUTEFORCE_PLUGIN_API_VERSION \
@@ -71,16 +81,6 @@ typedef enum ProtoPirateSharedPluginIDs {
 #define PROTOPIRATE_REMOTE_ANALYZER_PLUGIN_APP_ID "pp_ra"
 #define PROTOPIRATE_REMOTE_ANALYZER_PLUGIN_API_VERSION \
     ((uint32_t)sizeof(ProtoPirateSharedPluginHostApi))
-
-#include "helpers/protopirate_plugins_host_api.h"
-#include "../scenes/plugins/protopirate_config_plugin.h"
-#include "protopirate_bruteforce_host.h"
-#include "../scenes/plugins/protopirate_bruteforce_plugin.h"
-#include "protocols/protopirate_protocol_plugins.h"
-
-#include <lib/flipper_application/flipper_application.h>
-#include <gui/scene_manager.h>
-#include <gui/view_dispatcher.h>
 
 typedef struct {
     const char* plugin_name;
