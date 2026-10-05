@@ -275,7 +275,7 @@ bool protopirate_remote_analyzer_input(InputEvent* event, void* context) {
     } else if(event->key == InputKeyOk) {
         need_redraw = false;
         //bool updated = false;
-        uint32_t frequency_to_save;
+        uint32_t frequency_to_save = 0;
         //uint32_t is_am_to_save;
         with_view_model(
             instance->view,
