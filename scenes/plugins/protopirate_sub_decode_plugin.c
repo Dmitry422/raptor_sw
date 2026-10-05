@@ -2,6 +2,8 @@
 #include "../../protopirate_app_i.h"
 #include "../../helpers/raw_file_reader.h"
 #include "../../helpers/protopirate_storage.h"
+#include "../../helpers/protopirate_views.h"
+#include "../../protocols/protopirate_protocol_plugins.h"
 #include "pp_sd_icons.h"
 #include <dialogs/dialogs.h>
 #include <stdio.h>
@@ -601,15 +603,16 @@ bool plugin_scene_sub_decode_on_event(ProtoPirateApp* app, SceneManagerEvent eve
             // Save the file (same as receiver_info)
             FlipperFormat* ff =
                 protopirate_history_get_raw_data(ctx->history, ctx->selected_history_index);
-
             if(ff) {
-                FuriString* file_name_str = furi_string_alloc();
+#define YMD_LENGTH 17
+                char* file_name_str = malloc(PROTOPIRATE_PROTOCOL_NAME_MAX + YMD_LENGTH + 1);
                 if(app->datetime_filenames) {
                     //Get the date and time to save.
                     DateTime date_time;
                     furi_hal_rtc_get_datetime(&date_time);
-                    furi_string_printf(
+                    snprintf(
                         file_name_str,
+                        PROTOPIRATE_PROTOCOL_NAME_MAX + YMD_LENGTH,
                         "%.2d%.2d%.2d_%.2d.%.2d.%.2d_",
                         date_time.year,
                         date_time.month,
@@ -620,23 +623,31 @@ bool plugin_scene_sub_decode_on_event(ProtoPirateApp* app, SceneManagerEvent eve
                 }
 
                 // Extract protocol name
-                FuriString* protocol = furi_string_alloc();
-                protopirate_storage_get_capture_display_protocol(ff, protocol);
+                FuriString* buffer = furi_string_alloc();
+                protopirate_storage_get_capture_display_protocol(ff, buffer);
 
                 //Add the protocol
-                furi_string_cat(file_name_str, protocol);
-                furi_string_free(protocol);
+                char* file_name_dup = strdup(file_name_str);
+                snprintf(
+                    file_name_str,
+                    PROTOPIRATE_PROTOCOL_NAME_MAX + YMD_LENGTH,
+                    "%s%s",
+                    file_name_dup,
+                    furi_string_get_cstr(buffer));
+                free(file_name_dup);
 
                 // Clean protocol name for filename
-                furi_string_replace_all(file_name_str, "/", "_");
-                furi_string_replace_all(file_name_str, " ", "_");
+                for(char* p = file_name_str; *p; p++) {
+                    if(*p == '/' || *p == ' ') *p = '_';
+                }
 
                 // Get the next auto-generated filename (just the name part)
-                FuriString* auto_path = furi_string_alloc();
+                g_shared_plugin_host_api->free_text_input(app);
+                furi_string_reset(buffer);
                 if(protopirate_storage_get_next_filename(
-                       furi_string_get_cstr(file_name_str), auto_path, app->datetime_filenames)) {
+                       file_name_str, buffer, app->datetime_filenames)) {
                     // Extract just the filename without folder and extension
-                    const char* full = furi_string_get_cstr(auto_path);
+                    const char* full = furi_string_get_cstr(buffer);
                     const char* slash = strrchr(full, '/');
                     const char* name_start = slash ? slash + 1 : full;
 
@@ -645,30 +656,21 @@ bool plugin_scene_sub_decode_on_event(ProtoPirateApp* app, SceneManagerEvent eve
                     const char* dot = strrchr(name_start, '.');
                     if(dot) name_len = dot - name_start;
                     if(name_len > 64) name_len = 64;
-
-                    if(app->save_filename) free(app->save_filename);
                     app->save_filename = malloc(name_len + 1);
                     memcpy(app->save_filename, name_start, name_len);
                 } else {
-                    if(app->save_filename) free(app->save_filename);
                     uint8_t len = 8;
                     app->save_filename = malloc(len);
                     snprintf(app->save_filename, len, "capture");
                 }
-                furi_string_free(auto_path);
+                furi_string_free(buffer);
 
                 // Store context for when text input confirms
                 app->save_history_idx = app->txrx->idx_menu_chosen;
 
-                //Make sure we have a text input window.
-                app->text_input = text_input_alloc();
-                view_dispatcher_add_view(
-                    app->view_dispatcher,
-                    ProtoPirateViewTextInput,
-                    text_input_get_view(app->text_input));
+                g_shared_plugin_host_api->ensure_text_input(app);
 
                 // Configure and show text input
-                text_input_reset(app->text_input);
                 text_input_set_header_text(app->text_input, "Save filename:");
                 text_input_set_result_callback(
                     app->text_input,
@@ -679,7 +681,7 @@ bool plugin_scene_sub_decode_on_event(ProtoPirateApp* app, SceneManagerEvent eve
                     false); // don't clear default text
 
                 view_dispatcher_switch_to_view(app->view_dispatcher, ProtoPirateViewTextInput);
-                furi_string_free(file_name_str);
+                free(file_name_str);
             } else {
                 FURI_LOG_E(
                     TAG,
@@ -714,17 +716,7 @@ bool plugin_scene_sub_decode_on_event(ProtoPirateApp* app, SceneManagerEvent eve
             view_dispatcher_switch_to_view(app->view_dispatcher, ProtoPirateViewWidget);
 
             //Kill the text_input view.
-            if(app->text_input) {
-                FURI_LOG_D(TAG, "Removing text_input view");
-                view_dispatcher_remove_view(app->view_dispatcher, ProtoPirateViewTextInput);
-                text_input_free(app->text_input);
-                app->text_input = NULL;
-            }
-
-            if(app->save_filename) {
-                free(app->save_filename);
-                app->save_filename = NULL;
-            }
+            g_shared_plugin_host_api->free_text_input(app);
             consumed = true;
 
         }
@@ -1410,6 +1402,9 @@ void plugin_scene_sub_decode_on_exit(ProtoPirateApp* app) {
         subghz_receiver_reset(app->txrx->receiver);
         subghz_receiver_set_rx_callback(app->txrx->receiver, NULL, NULL);
     }
+
+    //If the user clicked cancel, these get left allocated.
+    g_shared_plugin_host_api->free_text_input(app);
 
     g_shared_plugin_host_api->bruteforce_context_release(app);
 

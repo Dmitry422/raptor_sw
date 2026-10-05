@@ -39,6 +39,17 @@ ProtoPirateApp* protopirate_app_alloc() {
     }
     memset(app, 0, sizeof(ProtoPirateApp));
 
+    // Null out plugin pointers just in case. (Should be done my memset above.)
+    /*app->running_plugin_flipper_application = NULL;
+    app->running_plugin.plugin_pointer = NULL;
+    app->running_bruteforce_plugin.plugin_pointer = NULL;
+    app->variable_item_list = NULL;
+    app->text_input = NULL;
+    app->save_history_idx = 0;
+    app->emulate_disabled_for_loaded = false;
+    app->save_filename = NULL;
+    */
+
     FURI_LOG_I(TAG, "Allocating ProtoPirate Decoder App");
 
     // GUI
@@ -71,10 +82,6 @@ ProtoPirateApp* protopirate_app_alloc() {
     app->submenu = submenu_alloc();
     view_dispatcher_add_view(
         app->view_dispatcher, ProtoPirateViewSubmenu, submenu_get_view(app->submenu));
-
-    app->save_history_idx = 0;
-    app->emulate_disabled_for_loaded = false;
-    app->save_filename = NULL;
 
     // File Browser path
     app->file_path = malloc(strlen(PROTOPIRATE_APP_FOLDER) + 1);
@@ -129,13 +136,10 @@ ProtoPirateApp* protopirate_app_alloc() {
     // Initialize TxRx structure with minimal setup
     app->lock = ProtoPirateLockOff;
     app->txrx = malloc(sizeof(ProtoPirateTxRx));
-    furi_check(app->txrx);
     memset(app->txrx, 0, sizeof(ProtoPirateTxRx));
-
+    //app->txrx->running_plugin.plugin_pointer = NULL; //memset shoulnt need it,
     app->txrx->preset = malloc(sizeof(SubGhzRadioPreset));
-    furi_check(app->txrx->preset);
     app->txrx->preset->name = furi_string_alloc();
-    furi_check(app->txrx->preset->name);
     app->txrx->txrx_state = ProtoPirateTxRxStateIDLE;
     app->txrx->rx_key_state = ProtoPirateRxKeyStateIDLE;
     app->txrx->protocol_registry_route = ProtoPirateProtocolRegistryRouteAMDefault;
@@ -152,13 +156,6 @@ ProtoPirateApp* protopirate_app_alloc() {
         preset_name,
         settings.auto_save,
         settings.hopper_state);
-
-    // Null out plugin pointers just in case.
-    app->running_plugin_flipper_application = NULL;
-    app->running_plugin.plugin_pointer = NULL;
-    app->running_bruteforce_plugin.plugin_pointer = NULL;
-    app->txrx->running_plugin.plugin_pointer = NULL;
-    app->variable_item_list = NULL;
 
     //Load the models database, get the count of the models for the list.
 #ifdef ENABLE_MODELS_DATABASE

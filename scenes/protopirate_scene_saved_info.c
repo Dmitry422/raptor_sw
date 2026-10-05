@@ -3,6 +3,8 @@
 #include "../helpers/protopirate_bruteforce_host.h"
 #include "../helpers/protopirate_storage.h"
 
+#define TAG "PPSceneSavedInfo"
+
 void protopirate_scene_saved_info_on_enter(void* context) {
     ProtoPirateApp* app = context;
 
