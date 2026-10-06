@@ -172,7 +172,6 @@ static void about_draw_callback(Canvas* canvas, void* context) {
 static bool about_input_callback(InputEvent* event, void* context) {
 #ifdef ENABLE_EMULATE_FEATURE
     ProtoPirateApp* app = context;
-
     if(event->type != InputTypePress) {
         return false;
     }
@@ -198,6 +197,7 @@ static bool about_input_callback(InputEvent* event, void* context) {
     return true;
 #else
     UNUSED(event);
+    UNUSED(context);
     return false;
 #endif
 }

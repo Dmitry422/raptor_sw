@@ -13,6 +13,7 @@ def ProtoPirateDefineEnabled(name, app_manifest_path=app_manifest_path):
 
 
 _ENABLE_TIMING_TUNER = ProtoPirateDefineEnabled("ENABLE_TIMING_TUNER_SCENE")
+_ENABLE_SUB_DECODE_SCENE = ProtoPirateDefineEnabled("ENABLE_SUB_DECODE_SCENE")
 _ENABLE_EMULATE = ProtoPirateDefineEnabled("ENABLE_EMULATE_FEATURE")
 _ENABLE_MODELS_DATABASE = ProtoPirateDefineEnabled("ENABLE_MODELS_DATABASE")
 _ENABLE_REMOTE_ANALYZER = ProtoPirateDefineEnabled("ENABLE_REMOTE_ANALYZER")
@@ -84,6 +85,7 @@ def ProtoPirateEmbed_plugins(
     App=App,
     embedded_fal = _EMBEDDED_FALS,
     _ENABLE_TIMING_TUNER = _ENABLE_TIMING_TUNER,
+    _ENABLE_SUB_DECODE_SCENE = _ENABLE_SUB_DECODE_SCENE,
     _ENABLE_EMULATE = _ENABLE_EMULATE,
     _ENABLE_REMOTE_ANALYZER = _ENABLE_REMOTE_ANALYZER,
     _ENABLE_WELCOME_SCREEN = _ENABLE_WELCOME_SCREEN,
@@ -389,24 +391,24 @@ def ProtoPirateEmbed_plugins(
     )
 
     # --- Proto Pirate Shared Plugins ---
-
-    App(
-        appid="pp_sd",
-        apptype=FlipperAppType.PLUGIN,
-        entry_point="protopirate_sub_decode_plugin_ep",
-        requires=["proto_pirate"],
-        cdefines=["PROTOPIRATE_SUB_DECODE_PLUGIN_BUILD=1"],
-        sources=[
-            "scenes/plugins/protopirate_sub_decode_plugin.c",
-            "helpers/raw_file_reader.c",
-            "protopirate_history.c",
-            "helpers/protopirate_storage.c",
-            "protocols/protocol_items.c",
-            "protocols/protocols_common.c",
-        ],
-        fap_icon_assets="images",
-        fal_embedded=embedded_fal,
-    )
+    if _ENABLE_SUB_DECODE_SCENE:    
+        App(
+            appid="pp_sd",
+            apptype=FlipperAppType.PLUGIN,
+            entry_point="protopirate_sub_decode_plugin_ep",
+            requires=["proto_pirate"],
+            cdefines=["PROTOPIRATE_SUB_DECODE_PLUGIN_BUILD=1"],
+            sources=[
+                "scenes/plugins/protopirate_sub_decode_plugin.c",
+                "helpers/raw_file_reader.c",
+                "protopirate_history.c",
+                "helpers/protopirate_storage.c",
+                "protocols/protocol_items.c",
+                "protocols/protocols_common.c",
+            ],
+            fap_icon_assets="images",
+            fal_embedded=embedded_fal,
+        )
 
     if _ENABLE_TIMING_TUNER:
         App(
